@@ -104,8 +104,15 @@ xcrun appintentsmetadataprocessor \
 test -f "$APP/Contents/Resources/Metadata.appintents/extract.actionsdata" \
   || { echo "❌ Metadata.appintents mancante"; exit 1; }
 
-# ── Firma ad-hoc ─────────────────────────────────────
-codesign --force --deep --sign - "$APP"
+# ── Firma ────────────────────────────────────────────
+# Preferisce il certificato locale stabile (i permessi TCC sopravvivono
+# agli aggiornamenti); altrimenti firma ad-hoc. Vedi make-signing-cert.sh.
+IDENTITY=${CODESIGN_IDENTITY:-}
+if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning | grep -q "CallT Local Signing"; then
+  IDENTITY="CallT Local Signing"
+fi
+codesign --force --deep --sign "${IDENTITY:--}" "$APP"
 codesign --verify --strict "$APP"
+echo "→ Firma: ${IDENTITY:-ad-hoc}"
 
 echo "✅ Build completata: $APP"
