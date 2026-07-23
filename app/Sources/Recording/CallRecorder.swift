@@ -24,6 +24,13 @@ final class CallRecorder: NSObject, ObservableObject {
     private var audioWriter: AudioOnlyWriter?
     private var tempURL: URL?
     private var finalURL: URL?
+    /// Resolved when SCRecordingOutput finishes finalizing the file.
+    private var finishSignal: CheckedContinuation<Void, Never>?
+
+    fileprivate func resolveFinishSignal() {
+        finishSignal?.resume()
+        finishSignal = nil
+    }
 
     func start(mode: Mode) async {
         // Preflight: no permission → explain and route to System Settings.
@@ -133,7 +140,23 @@ final class CallRecorder: NSObject, ObservableObject {
 
     func stop() async {
         guard isRecording else { return }
-        try? await stream?.stopCapture()
+
+        if recordingOutput != nil {
+            // SCRecordingOutput finalizes the file asynchronously after
+            // stopCapture: wait for recordingOutputDidFinishRecording
+            // (with a timeout) before touching the file, or the move races
+            // the finalizer and fails.
+            await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+                finishSignal = cont
+                Task { @MainActor in
+                    try? await self.stream?.stopCapture()
+                    try? await Task.sleep(nanoseconds: 8_000_000_000)
+                    self.resolveFinishSignal()  // timeout fallback; no-op if already resolved
+                }
+            }
+        } else {
+            try? await stream?.stopCapture()
+        }
         stream = nil
         recordingOutput = nil
         if let audioWriter {
@@ -144,6 +167,10 @@ final class CallRecorder: NSObject, ObservableObject {
         startedAt = nil
 
         if let tempURL, let finalURL {
+            // Extra safety: the file can appear a moment after finalization.
+            for _ in 0..<10 where !FileManager.default.fileExists(atPath: tempURL.path) {
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
             do {
                 try FileManager.default.moveItem(at: tempURL, to: finalURL)
                 appLog("⏹️ Recording saved: \(finalURL.lastPathComponent)")
@@ -165,9 +192,16 @@ final class CallRecorder: NSObject, ObservableObject {
 }
 
 extension CallRecorder: SCRecordingOutputDelegate {
+    nonisolated func recordingOutputDidFinishRecording(_ recordingOutput: SCRecordingOutput) {
+        Task { @MainActor in CallRecorder.shared.resolveFinishSignal() }
+    }
+
     nonisolated func recordingOutput(_ recordingOutput: SCRecordingOutput, didFailWithError error: Error) {
         appLog("❌ Recording error: \(error.localizedDescription)")
-        Task { @MainActor in await CallRecorder.shared.stop() }
+        Task { @MainActor in
+            CallRecorder.shared.resolveFinishSignal()
+            await CallRecorder.shared.stop()
+        }
     }
 }
 

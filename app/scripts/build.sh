@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 APP_NAME=CallT
 BUNDLE_ID=com.werootbox.callt
-VERSION=1.0.0
+VERSION=1.0.1
 BUILD_DIR=build.noindex   # .noindex: Spotlight/Launchpad ignorano le build
 APP="$BUILD_DIR/$APP_NAME.app"
 SDK=$(xcrun --show-sdk-path --sdk macosx)
