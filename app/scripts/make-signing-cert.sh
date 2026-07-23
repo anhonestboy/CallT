@@ -18,19 +18,16 @@ if security find-identity -v -p codesigning | grep -q "$NAME"; then
 fi
 
 echo "→ Generating certificate (valid 10 years)…"
-openssl req -x509 -newkey rsa:2048 -keyout "$DIR/key.pem" -out "$DIR/cert.pem" \
+/usr/bin/openssl req -x509 -newkey rsa:2048 -keyout "$DIR/key.pem" -out "$DIR/cert.pem" \
   -days 3650 -nodes -subj "/CN=$NAME" \
   -addext "extendedKeyUsage=codeSigning" \
   -addext "keyUsage=digitalSignature" \
   -addext "basicConstraints=critical,CA:false" 2>/dev/null
 
-PASS=$(uuidgen)
-openssl pkcs12 -export -out "$DIR/callt.p12" -inkey "$DIR/key.pem" \
-  -in "$DIR/cert.pem" -passout "pass:$PASS"
-
 echo "→ Importing into the login keychain…"
-security import "$DIR/callt.p12" -k ~/Library/Keychains/login.keychain-db \
-  -P "$PASS" -T /usr/bin/codesign
+# PEM import (no PKCS12: modern openssl produces containers the keychain rejects)
+security import "$DIR/key.pem" -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign
+security import "$DIR/cert.pem" -k ~/Library/Keychains/login.keychain-db
 
 echo "→ Trusting the certificate for code signing (a dialog may appear)…"
 security add-trusted-cert -p codeSign -k ~/Library/Keychains/login.keychain-db "$DIR/cert.pem"
