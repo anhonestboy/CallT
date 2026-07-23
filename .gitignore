@@ -1,0 +1,7 @@
+.DS_Store
+.venv/
+app/build.noindex/
+app/build/
+app/CallT.xcodeproj/
+*.xcuserstate
+DerivedData/

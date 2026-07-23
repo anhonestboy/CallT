@@ -1,0 +1,43 @@
+CallT — Registrazione, trascrizione e note automatiche delle call
+==================================================================
+
+COS'È
+CallT vive nella barra dei menu (icona a forma d'onda). Registra le tue
+call (audio di sistema + microfono, con o senza video dello schermo) e
+osserva una cartella: ogni video o audio che ci finisce dentro viene
+trascritto automaticamente, riassunto in note Markdown organizzate e,
+per i video, compresso. Tutto avviene sul tuo Mac: nessun dato lascia
+il computer, a meno che tu non scelga un motore di note cloud nelle
+impostazioni.
+
+REQUISITI
+- macOS 26 (Tahoe) o successivo. Nessun'altra installazione richiesta.
+
+INSTALLAZIONE
+1. Apri il file CallT.dmg.
+2. Trascina CallT nella cartella Applicazioni.
+3. Espelli il disco e avvia CallT da Applicazioni.
+
+PRIMO AVVIO (importante)
+L'app non proviene dall'App Store, quindi al primo avvio macOS la blocca:
+1. Apri CallT: apparirà un avviso — premi "Fine".
+2. Vai in Impostazioni di Sistema → Privacy e Sicurezza, scorri in basso
+   e premi "Apri comunque" accanto a CallT, poi conferma.
+Va fatto una sola volta. Per registrare le call, autorizza CallT anche in
+"Registrazione schermo e audio di sistema" e "Microfono" quando richiesto.
+
+USO
+- Clic sull'icona a forma d'onda nella barra dei menu.
+- "Registra chiamata" → video e audio, oppure solo audio.
+- "Avvia monitoraggio" per la cartella osservata
+  (predefinita: ~/CallRecordings — modificabile nelle Impostazioni).
+- Trascrizioni (.txt), note (.md) e video compressi compaiono nella
+  sottocartella "output". La prima trascrizione in una lingua scarica
+  il modello vocale (una tantum, serve la connessione).
+
+COMANDI RAPIDI (AUTOMAZIONE)
+- Impostazioni → Automazione: scegli un Comando Rapido da eseguire dopo
+  ogni trascrizione, col file .txt come input (mandalo via mail, Slack…).
+- Nell'app Comandi Rapidi trovi anche l'azione "Trascrivi video" di CallT.
+
+© 2026 werootbox — hello@werootbox.com — licenza MIT

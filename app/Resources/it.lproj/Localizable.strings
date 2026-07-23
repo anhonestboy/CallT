@@ -1,0 +1,128 @@
+/* CallT — Italian localization */
+
+/* Menu bar */
+"Stop monitoring" = "Ferma monitoraggio";
+"Start monitoring" = "Avvia monitoraggio";
+"Transcribe files…" = "Trascrivi file…";
+"Process existing files" = "Elabora i file già presenti";
+"Open recordings folder" = "Apri cartella registrazioni";
+"Open transcripts folder" = "Apri cartella trascrizioni";
+"Settings…" = "Impostazioni…";
+"Quit CallT" = "Esci da CallT";
+"⏹ Stop and transcribe" = "⏹ Ferma e trascrivi";
+"⏺ Record call" = "⏺ Registra chiamata";
+"Video and audio" = "Video e audio";
+"Audio only" = "Solo audio";
+"Monitoring off" = "Monitoraggio fermo";
+"Recent" = "Recenti";
+"Recording (since %@)" = "Registrazione in corso (dalle %@)";
+"Watching: %@" = "In ascolto: %@";
+"Queued: %lld" = "In coda: %lld";
+
+/* Job stages */
+"Queued" = "In coda";
+"Extracting audio" = "Estrazione audio";
+"Transcribing" = "Trascrizione";
+"Notes" = "Note";
+"Compressing" = "Compressione";
+"Delivering" = "Consegna";
+"Done" = "Completato";
+"Failed" = "Errore";
+
+/* Settings tabs */
+"General" = "Generale";
+"Processing" = "Elaborazione";
+"Automation" = "Automazione";
+"Log" = "Log";
+
+/* General tab */
+"Folders" = "Cartelle";
+"Recordings" = "Registrazioni";
+"Transcripts" = "Trascrizioni";
+"Choose the folder to watch" = "Scegli la cartella da osservare";
+"Choose the output folder" = "Scegli la cartella di output";
+"Not recommended: the output folder is the same as the watched folder." = "Sconsigliato: la cartella di output coincide con quella osservata.";
+"Default output: an “output” subfolder of the watched folder." = "Output predefinito: sottocartella “output” della cartella osservata.";
+"Language" = "Lingua";
+"Transcription language" = "Lingua della trascrizione";
+"App language" = "Lingua dell'app";
+"System" = "Sistema";
+"Takes effect after relaunching CallT." = "Ha effetto dopo il riavvio di CallT.";
+"Relaunch now" = "Riavvia ora";
+"Startup & alerts" = "Avvio e avvisi";
+"Notify when each transcription finishes" = "Notifica al termine di ogni trascrizione";
+"Open CallT at login" = "Apri CallT all'accesso";
+"Default" = "Predefinita";
+"Restore the default folder" = "Ripristina la cartella predefinita";
+"Choose…" = "Scegli…";
+
+/* Processing tab */
+"Transcription" = "Trascrizione";
+"Engine" = "Motore";
+"Apple (built-in, recommended)" = "Apple (integrato, consigliato)";
+"Whisper (requires whisper-cli)" = "Whisper (richiede whisper-cli)";
+"whisper-cli not found: install it with “brew install whisper-cpp”. The Apple engine will be used instead." = "whisper-cli non trovato: installalo con “brew install whisper-cpp”. Verrà usato il motore Apple.";
+"Model not found at %@" = "Modello non trovato in %@";
+"Also generate subtitles (.srt)" = "Genera anche i sottotitoli (.srt)";
+"Keep the extracted audio (.wav)" = "Conserva l'audio estratto (.wav)";
+"Compress the video after transcription" = "Comprimi il video dopo la trascrizione";
+"Quality" = "Qualità";
+"High (larger files)" = "Alta (file più grandi)";
+"Medium (recommended)" = "Media (consigliata)";
+"Low (smaller files)" = "Bassa (file più piccoli)";
+"Downscale to 1080p when larger" = "Riduci a 1080p se più grande";
+"Move the original to the Trash after compression" = "Sposta l'originale nel Cestino dopo la compressione";
+"Compression" = "Compressione";
+"The compressed video is kept only when it is genuinely smaller than the original. Audio-only files are never compressed." = "Il video compresso viene mantenuto solo se davvero più piccolo dell'originale. I file solo-audio non vengono compressi.";
+
+/* Notes tab */
+"Generate organized call notes (.md)" = "Genera note organizzate della call (.md)";
+"After each transcription a “name_notes.md” file is created: summary, topics with details and timestamps, decisions, action items and open questions." = "Dopo ogni trascrizione viene creato “nome_notes.md”: sintesi, argomenti con dettagli e timestamp, decisioni, azioni e domande aperte.";
+"Apple Intelligence (local, free)" = "Apple Intelligence (locale, gratuito)";
+"Claude API" = "API Claude";
+"Ollama (local)" = "Ollama (locale)";
+"OpenAI-compatible…" = "OpenAI-compatibile…";
+"Model" = "Modello";
+"Base URL" = "URL base";
+"API key" = "Chiave API";
+"The key is stored in the Keychain. The transcript is sent to the selected provider." = "La chiave è salvata nel Portachiavi. La trascrizione viene inviata al provider selezionato.";
+"Requires Ollama running on this Mac (localhost:11434)." = "Richiede Ollama in esecuzione su questo Mac (localhost:11434).";
+"Claude Opus 4.8 (best)" = "Claude Opus 4.8 (migliore)";
+"Claude Haiku 4.5 (budget)" = "Claude Haiku 4.5 (economico)";
+"Apple Intelligence available ✓" = "Apple Intelligence disponibile ✓";
+"Apple Intelligence is not enabled (System Settings → Apple Intelligence)" = "Apple Intelligence non è attiva (Impostazioni di Sistema → Apple Intelligence)";
+"This Mac does not support Apple Intelligence" = "Questo Mac non supporta Apple Intelligence";
+"Model is being prepared (try again shortly)" = "Modello in preparazione (riprova tra poco)";
+"Apple Intelligence unavailable" = "Apple Intelligence non disponibile";
+
+/* Automation tab */
+"Shortcut to run" = "Comando da eseguire";
+"None" = "Nessuno";
+"Refresh list" = "Aggiorna elenco";
+"Try with a sample file" = "Prova con un file di esempio";
+"Open Shortcuts" = "Apri Comandi Rapidi";
+"Automatic delivery" = "Consegna automatica";
+"When each transcription finishes, CallT runs the chosen Apple Shortcut with the .txt file as input: useful to send it via mail, Slack, Notes, and so on." = "Al termine di ogni trascrizione, CallT esegue il Comando Rapido scelto passando il file .txt come input: utile per inviarla via mail, Slack, Note, ecc.";
+"CallT also exposes a “Transcribe video” action in the Shortcuts app, so you can build automations that transcribe a file on demand." = "CallT espone anche l'azione “Trascrivi video” nell'app Comandi Rapidi: puoi costruire automazioni che trascrivono un file su richiesta.";
+"Running…" = "Esecuzione…";
+"This is a sample transcript generated by CallT." = "Questa è una trascrizione di prova generata da CallT.";
+"Shortcut ran successfully ✓" = "Comando eseguito correttamente ✓";
+"Error: %@" = "Errore: %@";
+
+/* Log tab */
+"Open log file" = "Apri file di log";
+
+/* Recording */
+"Screen recording permission required" = "Serve l'autorizzazione a registrare lo schermo";
+"To record calls, CallT needs permission to capture the screen and system audio. Enable CallT in System Settings → Privacy & Security → Screen & System Audio Recording, then try again." = "Per registrare le call, CallT ha bisogno del permesso di catturare lo schermo e l'audio di sistema. Attiva CallT in Impostazioni di Sistema → Privacy e Sicurezza → Registrazione schermo e audio di sistema, poi riprova.";
+"Open System Settings" = "Apri Impostazioni di Sistema";
+"Cancel" = "Annulla";
+"Recording could not start" = "Registrazione non avviata";
+"OK" = "OK";
+"no display available" = "nessun display disponibile";
+"Recording" = "Registrazione";
+
+/* Notifications & dialogs */
+"Transcription finished" = "Trascrizione completata";
+"Processing failed" = "Elaborazione fallita";
+"Choose the files to transcribe" = "Scegli i file da trascrivere";

@@ -1,0 +1,43 @@
+# Progetto Xcode generabile con: xcodegen generate
+# (utile per lavorare in Xcode; la build distribuibile usa scripts/build.sh)
+name: CallT
+options:
+  bundleIdPrefix: com.werootbox
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+
+targets:
+  CallT:
+    type: application
+    platform: macOS
+    deploymentTarget: "26.0"
+    sources:
+      - Sources
+      - path: Resources/AppIcon.icns
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.werootbox.callt
+        PRODUCT_NAME: CallT
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        DEVELOPMENT_TEAM: ""
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+        SWIFT_STRICT_CONCURRENCY: complete
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: CallT
+        CFBundleDevelopmentRegion: it
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSUIElement: true
+        LSMinimumSystemVersion: "26.0"
+        CFBundleIconFile: AppIcon
+        NSHumanReadableCopyright: "© 2026 werootbox"
