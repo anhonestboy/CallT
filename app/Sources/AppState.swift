@@ -27,6 +27,7 @@ final class AppState: ObservableObject {
         HotKeyManager.shared.register()
         appLog("CallT started")
         refreshRecents()
+        UpdateChecker.autoCheck()
         if AppSettings.monitoringEnabled {
             startMonitoring()
         }

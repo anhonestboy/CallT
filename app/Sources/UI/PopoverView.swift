@@ -98,6 +98,13 @@ struct PopoverView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .controlSize(.regular)
+                    Button {
+                        WindowPicker.shared.pick()
+                    } label: {
+                        Image(systemName: "macwindow.badge.plus")
+                    }
+                    .controlSize(.regular)
+                    .help(String(localized: "Record a single window…"))
                 }
                 .help(String(localized: "Global shortcut: ⌥⌘R"))
             }
@@ -234,6 +241,9 @@ struct PopoverView: View {
             }
             iconButton("square.and.arrow.down", help: String(localized: "Transcribe files…")) {
                 state.enqueueManually()
+            }
+            iconButton("clock.arrow.circlepath", help: String(localized: "History")) {
+                HistoryWindow.show()
             }
             Spacer()
             SettingsLink {

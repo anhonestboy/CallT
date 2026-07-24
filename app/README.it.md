@@ -36,7 +36,12 @@ Gli screenshot sono renderizzati direttamente dalla UI reale: `CallT --render-sc
 
 ## Installazione
 
-Scarica `CallT.dmg` dalle release e trascina CallT in Applicazioni. Al primo avvio macOS blocca le app non firmate: **Impostazioni di Sistema → Privacy e Sicurezza → Apri comunque** (una sola volta). Per registrare le call verranno chiesti anche i permessi di Registrazione schermo/audio di sistema e Microfono.
+Scarica `CallT.dmg` dalle release e trascina CallT in Applicazioni — oppure usa Homebrew:
+
+```sh
+brew install --cask anhonestboy/tap/callt
+```
+ Al primo avvio macOS blocca le app non firmate: **Impostazioni di Sistema → Privacy e Sicurezza → Apri comunque** (una sola volta). Per registrare le call verranno chiesti anche i permessi di Registrazione schermo/audio di sistema e Microfono.
 
 Oppure compila dai sorgenti:
 

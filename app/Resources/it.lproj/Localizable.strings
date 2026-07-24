@@ -181,3 +181,24 @@
 "Record from the menu bar icon or with ⌥⌘R" = "Registra dall'icona nella barra dei menu o con ⌥⌘R";
 "Drop files on the menu bar panel to transcribe them" = "Trascina i file sul pannello della barra dei menu per trascriverli";
 "Speakers: FluidAudio · Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama" = "Parlanti: FluidAudio · Note: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama";
+
+/* Fascia 2 */
+"History" = "Storico";
+"Search by name or inside transcripts and notes" = "Cerca per nome o dentro trascrizioni e note";
+"No processed calls yet." = "Nessuna call elaborata finora.";
+"No results for “%@”." = "Nessun risultato per “%@”.";
+"Notes" = "Note";
+"Transcript" = "Trascrizione";
+"Record a single window…" = "Registra una singola finestra…";
+"Microphone" = "Microfono";
+"System default" = "Predefinito di sistema";
+"Global shortcut to start/stop recording: ⌥⌘R" = "Scorciatoia globale per avviare/fermare la registrazione: ⌥⌘R";
+"Version" = "Versione";
+"Check for updates" = "Controlla aggiornamenti";
+"CallT %@ is available" = "È disponibile CallT %@";
+"Download it from the GitHub releases page." = "Scaricala dalla pagina delle release su GitHub.";
+"You are on %@. Download the update from GitHub." = "Hai la versione %@. Scarica l'aggiornamento da GitHub.";
+"Download" = "Scarica";
+"Later" = "Più tardi";
+"You're up to date" = "Sei aggiornato";
+"CallT %@ is the latest version." = "CallT %@ è l'ultima versione.";

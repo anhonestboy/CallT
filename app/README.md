@@ -36,7 +36,12 @@ Screenshots are rendered straight from the real UI: `CallT --render-screenshots 
 
 ## Install
 
-Download `CallT.dmg` from the releases, drag CallT to Applications. On first launch macOS blocks unsigned apps: open **System Settings → Privacy & Security → Open Anyway** (one time only). To record calls you will also be asked for Screen & System Audio Recording and Microphone permissions.
+Download `CallT.dmg` from the releases and drag CallT to Applications — or use Homebrew:
+
+```sh
+brew install --cask anhonestboy/tap/callt
+```
+ On first launch macOS blocks unsigned apps: open **System Settings → Privacy & Security → Open Anyway** (one time only). To record calls you will also be asked for Screen & System Audio Recording and Microphone permissions.
 
 Or build from source:
 

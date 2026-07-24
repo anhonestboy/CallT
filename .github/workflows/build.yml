@@ -1,0 +1,20 @@
+# Build di verifica. Richiede il runner immagine macOS 26 (Xcode 26):
+# finché non è disponibile fra i runner hosted, lanciare manualmente
+# da Actions → Build (workflow_dispatch) o usare un runner self-hosted.
+name: Build
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app (arm64)
+        run: app/scripts/build.sh
+      - name: Upload app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: CallT.app
+          path: app/build.noindex/CallT.app

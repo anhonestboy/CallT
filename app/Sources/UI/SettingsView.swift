@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import AVFoundation
 import ServiceManagement
 
 struct SettingsView: View {
@@ -87,6 +88,14 @@ struct GeneralTab: View {
             }
             Section("Startup & alerts") {
                 Toggle("Notify when each transcription finishes", isOn: $notifyOnComplete)
+                LabeledContent(String(localized: "Version")) {
+                    HStack {
+                        Text(verbatim: UpdateChecker.currentVersion).foregroundStyle(.secondary)
+                        Button(String(localized: "Check for updates")) {
+                            Task { await UpdateChecker.checkInteractively() }
+                        }
+                    }
+                }
                 Toggle("Open CallT at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in
                         do {
@@ -159,8 +168,15 @@ struct ProcessingTab: View {
     @AppStorage(SettingsKey.keepAudio) private var keepAudio = false
     @AppStorage(SettingsKey.generateSRT) private var generateSRT = false
     @AppStorage(SettingsKey.diarizeSpeakers) private var diarize = true
+    @AppStorage("micDeviceID") private var micDeviceID = ""
 
     private var whisperAvailable: Bool { WhisperTranscriber.detectBinary() != nil }
+    private var microphones: [(id: String, name: String)] {
+        AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.microphone, .external],
+            mediaType: .audio, position: .unspecified
+        ).devices.map { ($0.uniqueID, $0.localizedName) }
+    }
 
     var body: some View {
         Form {
@@ -186,6 +202,16 @@ struct ProcessingTab: View {
                 }
                 Toggle("Also generate subtitles (.srt)", isOn: $generateSRT)
                 Toggle("Keep the extracted audio (.wav)", isOn: $keepAudio)
+            }
+            Section("Recording") {
+                Picker(String(localized: "Microphone"), selection: $micDeviceID) {
+                    Text("System default").tag("")
+                    ForEach(microphones, id: \.id) { mic in
+                        Text(verbatim: mic.name).tag(mic.id)
+                    }
+                }
+                Text("Global shortcut to start/stop recording: ⌥⌘R")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Compress the video after transcription", isOn: $compressVideo)

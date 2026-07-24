@@ -15,6 +15,7 @@ struct CallTApp: App {
             Image(systemName: recorder.isRecording
                 ? "record.circle"
                 : (state.currentJob == nil ? "waveform" : "waveform.badge.microphone"))
+                .symbolEffect(.pulse, isActive: recorder.isRecording || state.currentJob != nil)
         }
         .menuBarExtraStyle(.window)
 

@@ -32,7 +32,7 @@ final class CallRecorder: NSObject, ObservableObject {
         finishSignal = nil
     }
 
-    func start(mode: Mode) async {
+    func start(mode: Mode, filter customFilter: SCContentFilter? = nil) async {
         // Preflight: no permission → explain and route to System Settings.
         guard CGPreflightScreenCaptureAccess() else {
             CGRequestScreenCaptureAccess()
@@ -40,7 +40,7 @@ final class CallRecorder: NSObject, ObservableObject {
             return
         }
         do {
-            try await begin(mode)
+            try await begin(mode, customFilter: customFilter)
         } catch {
             appLog("❌ Recording not started: \(error.localizedDescription)")
             showErrorAlert(message: error.localizedDescription)
@@ -71,12 +71,24 @@ final class CallRecorder: NSObject, ObservableObject {
         alert.runModal()
     }
 
-    private func begin(_ mode: Mode) async throws {
+    private func begin(_ mode: Mode, customFilter: SCContentFilter? = nil) async throws {
         guard !isRecording else { return }
 
-        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-        guard let display = content.displays.first else {
-            throw TranscriptionError(message: String(localized: "no display available"))
+        let filter: SCContentFilter
+        var captureSize: CGSize
+        if let customFilter {
+            filter = customFilter
+            captureSize = customFilter.contentRect.size
+        } else {
+            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            guard let display = content.displays.first else {
+                throw TranscriptionError(message: String(localized: "no display available"))
+            }
+            filter = SCContentFilter(display: display, excludingWindows: [])
+            captureSize = CGSize(width: display.width, height: display.height)
+        }
+        if captureSize.width < 2 || captureSize.height < 2 {
+            captureSize = CGSize(width: 1280, height: 720)
         }
 
         let config = SCStreamConfiguration()
@@ -85,11 +97,15 @@ final class CallRecorder: NSObject, ObservableObject {
         config.sampleRate = 48_000
         config.channelCount = 2
         config.captureMicrophone = true
+        let micID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
+        if !micID.isEmpty {
+            config.microphoneCaptureDeviceID = micID
+        }
         switch mode {
         case .videoAudio:
             // 1x resolution (points): plenty for calls, lighter files.
-            config.width = display.width
-            config.height = display.height
+            config.width = Int(captureSize.width)
+            config.height = Int(captureSize.height)
             config.minimumFrameInterval = CMTime(value: 1, timescale: 15)
             config.showsCursor = true
         case .audioOnly:
@@ -100,7 +116,6 @@ final class CallRecorder: NSObject, ObservableObject {
             config.minimumFrameInterval = CMTime(value: 1, timescale: 2)
         }
 
-        let filter = SCContentFilter(display: display, excludingWindows: [])
         let newStream = SCStream(filter: filter, configuration: config, delegate: nil)
 
         let watch = AppSettings.watchFolder
