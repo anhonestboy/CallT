@@ -28,6 +28,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if ScreenshotRenderer.runIfRequested() { return }
         AppState.shared.onLaunch()
+        // Debug: ritenta un file specifico ignorando il registro.
+        if let idx = CommandLine.arguments.firstIndex(of: "--process"),
+           CommandLine.arguments.count > idx + 1 {
+            AppState.shared.enqueue(URL(fileURLWithPath: CommandLine.arguments[idx + 1]), force: true)
+        }
         // Flag di collaudo: registra qualche secondo e ferma da solo.
         if CommandLine.arguments.contains("--test-record-audio") {
             Task { @MainActor in

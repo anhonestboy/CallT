@@ -35,32 +35,60 @@ enum AudioExtractor {
             AVLinearPCMIsBigEndianKey: false,
             AVLinearPCMIsNonInterleaved: false,
         ]
+        // Classic single-lane pump (requestMediaDataWhenReady + copyNextSampleBuffer):
+        // the macOS 26 async provider/receiver API fails with OSStatus -50 on
+        // some AAC layouts (e.g. Teams recordings) and stalls on long files.
         let reader = try AVAssetReader(asset: asset)
         let output = AVAssetReaderAudioMixOutput(audioTracks: audioTracks, audioSettings: pcm16k)
         output.alwaysCopiesSampleData = false
+        guard reader.canAdd(output) else {
+            throw TranscriptionError(message: "cannot add the audio output")
+        }
+        reader.add(output)
+
         let writer = try AVAssetWriter(outputURL: destination, fileType: .wav)
         let input = AVAssetWriterInput(mediaType: .audio, outputSettings: pcm16k)
         input.expectsMediaDataInRealTime = false
-
-        // I provider/receiver vanno creati PRIMA di startReading()/start().
-        let provider = reader.outputProvider(for: output)
-        let receiver = writer.inputReceiver(for: input)
+        guard writer.canAdd(input) else {
+            throw TranscriptionError(message: "cannot add the audio input")
+        }
+        writer.add(input)
 
         guard reader.startReading() else {
             throw reader.error ?? TranscriptionError(message: "reading audio failed")
         }
-        try writer.start()
+        guard writer.startWriting() else {
+            reader.cancelReading()
+            throw writer.error ?? TranscriptionError(message: "writing the WAV failed")
+        }
         writer.startSession(atSourceTime: .zero)
 
-        while let sample = try await provider.next() {
-            try await receiver.append(sample)
+        final class LaneState: @unchecked Sendable { var finished = false }
+        nonisolated(unsafe) let out = output
+        nonisolated(unsafe) let inp = input
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            let queue = DispatchQueue(label: "com.werootbox.callt.wav")
+            let state = LaneState()
+            inp.requestMediaDataWhenReady(on: queue) {
+                while inp.isReadyForMoreMediaData {
+                    guard let sample = out.copyNextSampleBuffer(), inp.append(sample) else {
+                        if !state.finished {
+                            state.finished = true
+                            inp.markAsFinished()
+                            cont.resume()
+                        }
+                        return
+                    }
+                }
+            }
         }
-        receiver.finish()
         await writer.finishWriting()
         if reader.status == .failed {
+            try? FileManager.default.removeItem(at: destination)
             throw reader.error ?? TranscriptionError(message: "reading audio failed")
         }
         guard writer.status == .completed else {
+            try? FileManager.default.removeItem(at: destination)
             throw writer.error ?? TranscriptionError(message: "writing the WAV failed")
         }
     }

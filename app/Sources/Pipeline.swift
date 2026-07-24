@@ -67,9 +67,8 @@ enum Pipeline {
                     // The file IS audio already: use it directly
                     // (WAV only when whisper needs it and the format differs).
                     if engineKind == .whisper && ext != "wav" {
-                        let wav = tempDir.appendingPathComponent("audio.wav")
-                        try await AudioExtractor.extractWAV(from: videoURL, to: wav)
-                        audioForEngine = wav
+                        audioForEngine = try await extractWAVResiliently(
+                            from: videoURL, to: tempDir.appendingPathComponent("audio.wav"))
                     } else {
                         audioForEngine = videoURL
                     }
@@ -78,16 +77,28 @@ enum Pipeline {
                     try await FFmpegHelper.extractWAV(from: videoURL, to: wav)
                     audioForEngine = wav
                 } else if needsWAV {
-                    let wav = tempDir.appendingPathComponent("audio.wav")
-                    try await AudioExtractor.extractWAV(from: videoURL, to: wav)
-                    audioForEngine = wav
+                    audioForEngine = try await extractWAVResiliently(
+                        from: videoURL, to: tempDir.appendingPathComponent("audio.wav"))
                 } else {
-                    let m4a = tempDir.appendingPathComponent("audio.m4a")
-                    try await AudioExtractor.exportM4A(from: videoURL, to: m4a)
-                    audioForEngine = m4a
+                    do {
+                        let m4a = tempDir.appendingPathComponent("audio.m4a")
+                        try await AudioExtractor.exportM4A(from: videoURL, to: m4a)
+                        audioForEngine = m4a
+                    } catch where FFmpegHelper.available {
+                        // Some files (e.g. certain Teams recordings) trip
+                        // AVFoundation's decoder mid-stream; ffmpeg is tolerant.
+                        appLog("⚠️ AVFoundation could not extract the audio, retrying with ffmpeg…")
+                        let wav = tempDir.appendingPathComponent("audio.wav")
+                        try await FFmpegHelper.extractWAV(from: videoURL, to: wav)
+                        audioForEngine = wav
+                    }
                 }
             } catch {
-                await fail(videoURL, update: update, message: "Audio extraction failed: \(error.localizedDescription)")
+                let ns = error as NSError
+                let underlying = (ns.userInfo[NSUnderlyingErrorKey] as? NSError)
+                    .map { " — \($0.domain) \($0.code) \($0.localizedDescription)" } ?? ""
+                await fail(videoURL, update: update,
+                           message: "Audio extraction failed: \(error.localizedDescription) [\(ns.domain) \(ns.code)\(underlying)]")
                 return
             }
 
@@ -167,11 +178,20 @@ enum Pipeline {
                         downscale: AppSettings.downscaleTo1080
                     ) { p in update(.compressing, p, nil) }
                 } else {
-                    result = try await VideoCompressor.compress(
-                        source: videoURL, destination: compressedURL,
-                        quality: AppSettings.compressionQuality,
-                        downscale: AppSettings.downscaleTo1080
-                    ) { p in update(.compressing, p, nil) }
+                    do {
+                        result = try await VideoCompressor.compress(
+                            source: videoURL, destination: compressedURL,
+                            quality: AppSettings.compressionQuality,
+                            downscale: AppSettings.downscaleTo1080
+                        ) { p in update(.compressing, p, nil) }
+                    } catch where FFmpegHelper.available {
+                        appLog("⚠️ AVFoundation could not compress the video, retrying with ffmpeg…")
+                        result = try await FFmpegHelper.compress(
+                            source: videoURL, destination: compressedURL,
+                            quality: AppSettings.compressionQuality,
+                            downscale: AppSettings.downscaleTo1080
+                        ) { p in update(.compressing, p, nil) }
+                    }
                 }
                 switch result {
                 case .compressed(let saved):
@@ -216,6 +236,18 @@ enum Pipeline {
                 }
             }
         }
+    }
+
+    /// WAV extraction with an ffmpeg fallback: AVFoundation's decoder rejects
+    /// mid-stream quirks (some Teams/OneDrive recordings) that ffmpeg tolerates.
+    private static func extractWAVResiliently(from source: URL, to wav: URL) async throws -> URL {
+        do {
+            try await AudioExtractor.extractWAV(from: source, to: wav)
+        } catch where FFmpegHelper.available {
+            appLog("⚠️ AVFoundation could not extract the audio, retrying with ffmpeg…")
+            try await FFmpegHelper.extractWAV(from: source, to: wav)
+        }
+        return wav
     }
 
     /// True when the file has at least one audio track (when in doubt, true:
