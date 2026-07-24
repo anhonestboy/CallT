@@ -133,3 +133,11 @@
 "Recording: ScreenCaptureKit · Transcription: Apple Speech, whisper.cpp" = "Registrazione: ScreenCaptureKit · Trascrizione: Apple Speech, whisper.cpp";
 "Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama" = "Note: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama";
 "MIT license" = "Licenza MIT";
+
+/* Notes detail */
+"Detail level" = "Livello di dettaglio";
+"Normal" = "Normale";
+"Detailed" = "Dettagliata";
+"Very detailed" = "Molto dettagliata";
+"Include timestamps" = "Includi i timestamp";
+"After each transcription a “name_notes.md” file is created: summary, topics with details, decisions, action items and open questions. Higher detail levels produce longer, more thorough notes." = "Dopo ogni trascrizione viene creato “nome_notes.md”: sintesi, argomenti con dettagli, decisioni, azioni e domande aperte. I livelli di dettaglio più alti producono note più lunghe e approfondite.";

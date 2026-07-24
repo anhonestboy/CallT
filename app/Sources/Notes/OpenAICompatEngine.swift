@@ -57,6 +57,7 @@ struct OpenAICompatEngine: NotesEngine {
             body: [
                 "model": model,
                 "stream": true,
+                "max_tokens": 8192,
                 "messages": [
                     ["role": "system", "content": instructions],
                     ["role": "user", "content": prompt],

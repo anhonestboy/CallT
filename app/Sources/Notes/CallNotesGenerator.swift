@@ -21,6 +21,14 @@ enum CallNotesGenerator {
         }.joined(separator: "\n")
     }
 
+    enum Detail: String {
+        case normal, detailed, verydetailed
+
+        static var current: Detail {
+            Detail(rawValue: AppSettings.notesDetail) ?? .normal
+        }
+    }
+
     static let noteInstructions = """
         You are an assistant that turns work-call transcripts into detailed, organized, \
         faithful notes. Always write the notes (including section headings) in the SAME \
@@ -28,22 +36,66 @@ enum CallNotesGenerator {
         the transcript, omit the corresponding section. Reply ONLY in Markdown.
         """
 
+    private static var timestampRule: String {
+        AppSettings.notesTimestamps
+            ? "Where useful, keep the [hh:mm:ss] time references present in the material."
+            : "Do NOT include time references like [hh:mm:ss] in the notes."
+    }
+
     static func finalPrompt(callName: String, material: String) -> String {
-        """
+        let structure: String
+        switch Detail.current {
+        case .normal:
+            structure = """
+            # Notes — \(callName)
+            ## Summary
+            (4-6 sentences summarizing the call)
+            ## Topics discussed
+            (one ### subsection per topic, with the important details explained)
+            ## Decisions
+            ## Action items
+            (list: what, who when identifiable, by when if mentioned)
+            ## Open questions
+            """
+        case .detailed:
+            structure = """
+            # Notes — \(callName)
+            ## Summary
+            (6-10 sentences summarizing the call)
+            ## Topics discussed
+            (one ### subsection per topic. Be thorough: capture every substantive point — \
+            arguments, numbers, names, examples, context and reasoning. Do not condense \
+            distinct points together; prefer completeness over brevity)
+            ## Decisions
+            (each decision with its rationale)
+            ## Action items
+            (list: what, who when identifiable, by when if mentioned)
+            ## Open questions
+            """
+        case .verydetailed:
+            structure = """
+            # Notes — \(callName)
+            ## Summary
+            (8-12 sentences summarizing the call)
+            ## Meeting walkthrough
+            (an in-depth chronological account: one ### subsection per phase of the \
+            discussion, in order. For each, explain in full what was discussed and why: \
+            positions taken and by whom when identifiable, reasoning, alternatives \
+            considered, technical specifics, numbers, names and examples. Length is not \
+            a concern — exhaustive coverage is the goal)
+            ## Decisions
+            (each decision with its rationale and any conditions)
+            ## Action items
+            (list: what, who when identifiable, by when if mentioned)
+            ## Open questions
+            """
+        }
+        return """
         Turn the following material (transcript or partial notes of the call “\(callName)”) \
         into complete notes with this structure, translating the section headings into the \
-        language of the material:
+        language of the material. \(timestampRule)
 
-        # Notes — \(callName)
-        ## Summary
-        (4-6 sentences summarizing the call)
-        ## Topics discussed
-        (one ### subsection per topic, with the important details explained and, where \
-        useful, the [hh:mm:ss] time references present in the material)
-        ## Decisions
-        ## Action items
-        (list: what, who when identifiable, by when if mentioned)
-        ## Open questions
+        \(structure)
 
         Omit sections that have no content. Here is the material:
 
@@ -52,11 +104,19 @@ enum CallNotesGenerator {
     }
 
     static func chunkPrompt(callName: String, part: Int, total: Int, chunk: String) -> String {
-        """
+        let depth: String
+        switch Detail.current {
+        case .normal:
+            depth = "topics discussed with the important details, decisions, action items, open questions"
+        case .detailed:
+            depth = "every substantive point of each topic (arguments, numbers, names, examples, reasoning), decisions with their rationale, action items, open questions"
+        case .verydetailed:
+            depth = "a full chronological account of everything discussed (positions, reasoning, alternatives, technical specifics, numbers, names, examples), decisions with rationale, action items, open questions — exhaustive coverage, length is not a concern"
+        }
+        return """
         This is part \(part) of \(total) of the transcript of the call “\(callName)”. \
-        Extract detailed bullet-point notes in the same language as the transcript: topics \
-        discussed with the important details, decisions, action items, open questions. \
-        Keep the [hh:mm:ss] time references. Do not add preambles or conclusions.
+        Extract detailed bullet-point notes in the same language as the transcript: \(depth). \
+        \(timestampRule) Do not add preambles or conclusions.
 
         \(chunk)
         """

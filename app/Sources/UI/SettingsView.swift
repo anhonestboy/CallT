@@ -204,6 +204,8 @@ struct NotesTab: View {
     @AppStorage(SettingsKey.notesEnabled) private var enabled = true
     @AppStorage(SettingsKey.notesEngine) private var engine = "apple"
     @AppStorage(SettingsKey.notesBaseURL) private var baseURL = ""
+    @AppStorage(SettingsKey.notesDetail) private var detail = "normal"
+    @AppStorage(SettingsKey.notesTimestamps) private var timestamps = true
     @State private var model = ""
     @State private var apiKey = ""
 
@@ -228,8 +230,14 @@ struct NotesTab: View {
         Form {
             Section {
                 Toggle("Generate organized call notes (.md)", isOn: $enabled)
+                Picker("Detail level", selection: $detail) {
+                    Text("Normal").tag("normal")
+                    Text("Detailed").tag("detailed")
+                    Text("Very detailed").tag("verydetailed")
+                }
+                Toggle("Include timestamps", isOn: $timestamps)
             } footer: {
-                Text("After each transcription a “name_notes.md” file is created: summary, topics with details and timestamps, decisions, action items and open questions.")
+                Text("After each transcription a “name_notes.md” file is created: summary, topics with details, decisions, action items and open questions. Higher detail levels produce longer, more thorough notes.")
             }
             Section("Engine") {
                 Picker("Engine", selection: $engine) {

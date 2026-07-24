@@ -24,6 +24,9 @@ enum SettingsKey {
     /// "apple" | "claude" | "openrouter" | "deepseek" | "ollama" | "custom"
     static let notesEngine = "notesEngine"
     static let notesBaseURL = "notesBaseURL"
+    /// "normal" | "detailed" | "verydetailed"
+    static let notesDetail = "notesDetail"
+    static let notesTimestamps = "notesTimestamps"
 }
 
 enum TranscriptionEngineKind: String, CaseIterable, Identifiable {
@@ -80,6 +83,8 @@ struct AppSettings {
             SettingsKey.notesEnabled: true,
             SettingsKey.notesEngine: "apple",
             SettingsKey.notesBaseURL: "",
+            SettingsKey.notesDetail: "normal",
+            SettingsKey.notesTimestamps: true,
         ])
     }
 
@@ -110,6 +115,8 @@ struct AppSettings {
     static var notesEnabled: Bool { defaults.bool(forKey: SettingsKey.notesEnabled) }
     static var notesEngine: String { defaults.string(forKey: SettingsKey.notesEngine) ?? "apple" }
     static var notesBaseURL: String { defaults.string(forKey: SettingsKey.notesBaseURL) ?? "" }
+    static var notesDetail: String { defaults.string(forKey: SettingsKey.notesDetail) ?? "normal" }
+    static var notesTimestamps: Bool { defaults.bool(forKey: SettingsKey.notesTimestamps) }
 
     /// Modello per motore di note (chiave dedicata per motore, con default sensato).
     static func notesModel(for engine: String) -> String {
