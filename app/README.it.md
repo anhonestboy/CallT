@@ -41,6 +41,17 @@ L'icona si rigenera con `swift scripts/make_icon.swift Resources` (stesso glifo 
 
 Tutto gira sul tuo Mac: registrazione, trascrizione, compressione e (per impostazione predefinita) generazione delle note. Nulla lascia il computer a meno che tu non scelga esplicitamente un motore di note cloud (Claude, OpenRouter, DeepSeek, custom) — in quel caso la trascrizione viene inviata a quel provider, come indicato nelle impostazioni. Le chiavi API sono nel Portachiavi di macOS.
 
+## Crediti
+
+Creato da **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
+
+Costruito con [Claude Code](https://claude.com/claude-code) (Anthropic). CallT poggia su ottime spalle:
+
+- **Framework Apple** — ScreenCaptureKit (registrazione), Speech/SpeechAnalyzer (trascrizione), FoundationModels/Apple Intelligence (note on-device), AVFoundation (elaborazione audio/video), App Intents (Comandi Rapidi)
+- **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)** — motore di trascrizione opzionale
+- **[ffmpeg](https://ffmpeg.org)** — supporto MKV opzionale
+- Provider di note opzionali: [Anthropic](https://www.anthropic.com), [OpenRouter](https://openrouter.ai), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com)
+
 ## Licenza
 
 MIT — vedi [LICENSE](../LICENSE).

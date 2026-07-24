@@ -66,6 +66,17 @@ Resources/                  icon + localizations (en base, it)
 scripts/                    build.sh, package.sh, make_icon.swift
 ```
 
+## Credits
+
+Created by **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
+
+Built with [Claude Code](https://claude.com/claude-code) (Anthropic). CallT stands on excellent shoulders:
+
+- **Apple frameworks** — ScreenCaptureKit (recording), Speech/SpeechAnalyzer (transcription), FoundationModels/Apple Intelligence (on-device notes), AVFoundation (audio/video processing), App Intents (Shortcuts)
+- **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)** — optional transcription engine
+- **[ffmpeg](https://ffmpeg.org)** — optional MKV support
+- Optional notes providers: [Anthropic](https://www.anthropic.com), [OpenRouter](https://openrouter.ai), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com)
+
 ## License
 
 MIT — see [LICENSE](../LICENSE).
