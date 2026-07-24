@@ -8,7 +8,7 @@ struct CallTApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent()
+            PopoverView()
                 .environmentObject(state)
         } label: {
             // Stesso glifo dell'icona app; varianti per registrazione/elaborazione.
@@ -16,6 +16,7 @@ struct CallTApp: App {
                 ? "record.circle"
                 : (state.currentJob == nil ? "waveform" : "waveform.badge.microphone"))
         }
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView()
@@ -28,6 +29,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if ScreenshotRenderer.runIfRequested() { return }
         AppState.shared.onLaunch()
+        Onboarding.showIfNeeded()
+        // Debug: rigenera le note da una trascrizione esistente.
+        if let idx = CommandLine.arguments.firstIndex(of: "--regen-notes"),
+           CommandLine.arguments.count > idx + 1 {
+            let path = CommandLine.arguments[idx + 1]
+            AppState.shared.regenerateNotes(transcriptPath: path)
+        }
         // Debug: ritenta un file specifico ignorando il registro.
         if let idx = CommandLine.arguments.firstIndex(of: "--process"),
            CommandLine.arguments.count > idx + 1 {

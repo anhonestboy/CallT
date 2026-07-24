@@ -1,8 +1,8 @@
 import Foundation
 
 /// Risultato di una trascrizione, con segmenti temporizzati quando disponibili.
-struct Transcript: Sendable {
-    struct Segment: Sendable {
+struct Transcript: Sendable, Codable {
+    struct Segment: Sendable, Codable {
         var start: TimeInterval?
         var end: TimeInterval?
         var text: String

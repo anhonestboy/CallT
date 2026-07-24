@@ -65,6 +65,26 @@ actor ProcessedRegistry {
         return entry.transcript
     }
 
+    struct RecentItem: Sendable {
+        let sourcePath: String
+        let transcriptPath: String?
+        let processedAt: Date
+        var displayName: String { (sourcePath as NSString).lastPathComponent }
+    }
+
+    /// Ultimi file elaborati con successo, dal più recente.
+    func recentDone(limit: Int) -> [RecentItem] {
+        loadIfNeeded()
+        return entries
+            .compactMap { path, entry -> RecentItem? in
+                guard entry.status == "done", let at = entry.processedAt else { return nil }
+                return RecentItem(sourcePath: path, transcriptPath: entry.transcript, processedAt: at)
+            }
+            .sorted { $0.processedAt > $1.processedAt }
+            .prefix(limit)
+            .map { $0 }
+    }
+
     func markSeen(_ url: URL) {
         loadIfNeeded()
         guard let s = Self.stat(url) else { return }

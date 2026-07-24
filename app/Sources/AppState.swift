@@ -10,6 +10,7 @@ final class AppState: ObservableObject {
     @Published private(set) var isMonitoring = false
     @Published private(set) var jobs: [Job] = []
     @Published private(set) var queuedCount = 0
+    @Published private(set) var recents: [ProcessedRegistry.RecentItem] = []
 
     private var watcher: FolderWatcher?
     private var pendingQueue: [URL] = []
@@ -22,8 +23,10 @@ final class AppState: ObservableObject {
 
     func onLaunch() {
         AppSettings.registerDefaults()
-        Notifier.requestPermissionIfNeeded()
+        Notifier.setup()
+        HotKeyManager.shared.register()
         appLog("CallT started")
+        refreshRecents()
         if AppSettings.monitoringEnabled {
             startMonitoring()
         }
@@ -169,10 +172,42 @@ final class AppState: ObservableObject {
 
     private func finishCurrentAndContinue() {
         isProcessing = false
+        refreshRecents()
         processNextIfIdle()
     }
 
-    private func updateJob(_ id: UUID, stage: JobStage, progress: Double, info: Pipeline.UpdateInfo?) {
+    func refreshRecents() {
+        Task { @MainActor in
+            recents = await ProcessedRegistry.shared.recentDone(limit: 6)
+        }
+    }
+
+    /// Percorso delle note derivato da quello della trascrizione.
+    static func notesPath(forTranscript transcriptPath: String) -> String {
+        var base = transcriptPath
+        for suffix in ["_transcript.txt", "_trascrizione.txt"] where base.hasSuffix(suffix) {
+            base = String(base.dropLast(suffix.count))
+        }
+        return base + "_notes.md"
+    }
+
+    /// Rigenera le note di un elemento recente con le impostazioni correnti.
+    func regenerateNotes(transcriptPath: String) {
+        var job = Job(videoURL: URL(fileURLWithPath: transcriptPath))
+        job.stage = .summarizing
+        job.startedAt = Date()
+        jobs.append(job)
+        let jobID = job.id
+        Task.detached(priority: .userInitiated) {
+            await Pipeline.regenerateNotes(transcriptPath: transcriptPath) { stage, progress, info in
+                Task { @MainActor in
+                    AppState.shared.updateJob(jobID, stage: stage, progress: progress, info: info)
+                }
+            }
+        }
+    }
+
+    func updateJob(_ id: UUID, stage: JobStage, progress: Double, info: Pipeline.UpdateInfo?) {
         guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
         // Gli stati done/failed sono terminali: ignora update in ritardo.
         guard !jobs[idx].isFinished else { return }
@@ -181,6 +216,7 @@ final class AppState: ObservableObject {
         if let info {
             jobs[idx].error = info.error
             jobs[idx].transcriptURL = info.transcriptURL ?? jobs[idx].transcriptURL
+            jobs[idx].notesURL = info.notesURL ?? jobs[idx].notesURL
         }
         if stage == .done || stage == .failed {
             jobs[idx].finishedAt = Date()

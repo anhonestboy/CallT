@@ -8,6 +8,7 @@ enum Pipeline {
     struct UpdateInfo: Sendable {
         var error: String?
         var transcriptURL: URL?
+        var notesURL: URL?
     }
 
     typealias Update = @Sendable (JobStage, Double, UpdateInfo?) -> Void
@@ -55,6 +56,7 @@ enum Pipeline {
 
         // 1+2. Audio extraction and transcription (skipped for silent videos)
         var writtenTranscript: URL?
+        var writtenNotes: URL?
         if hasAudio {
             update(.extractingAudio, 0, nil)
             let engineKind = AppSettings.engine
@@ -165,6 +167,12 @@ enum Pipeline {
                 return
             }
             writtenTranscript = transcriptURL
+            // Sidecar nascosto con i segmenti: permette di rigenerare le note
+            // (anche con un altro livello di dettaglio) senza ritrascrivere.
+            let sidecarURL = outDir.appendingPathComponent(".\(baseName).segments.json")
+            if let data = try? JSONEncoder().encode(transcript) {
+                try? data.write(to: sidecarURL)
+            }
             update(.transcribing, 1, UpdateInfo(transcriptURL: transcriptURL))
 
             // 2b. Organized notes (.md) — non-blocking
@@ -175,6 +183,7 @@ enum Pipeline {
                         transcript: transcript, callName: baseName
                     ) { p in update(.summarizing, p, nil) }
                     try notes.write(to: notesURL, atomically: true, encoding: .utf8)
+                    writtenNotes = notesURL
                     appLog("   → \(notesURL.lastPathComponent)")
                 } catch {
                     appLog("⚠️ Notes not generated (non-blocking): \(error.localizedDescription)")
@@ -240,9 +249,12 @@ enum Pipeline {
             }
         }
 
-        update(.done, 1, UpdateInfo(transcriptURL: writtenTranscript))
+        update(.done, 1, UpdateInfo(transcriptURL: writtenTranscript, notesURL: writtenNotes))
         appLog("✅ Finished: \(videoURL.lastPathComponent)")
-        Notifier.notify(title: String(localized: "Transcription finished"), body: videoURL.lastPathComponent)
+        Notifier.notifyDone(
+            title: String(localized: "Transcription finished"),
+            body: videoURL.lastPathComponent,
+            transcript: writtenTranscript, notes: writtenNotes)
 
         // 6. Delivery via Apple Shortcuts — off the serial queue: a slow or
         // stuck shortcut must not hold up the next files.
@@ -305,6 +317,51 @@ enum Pipeline {
             if !txtBusy && !mp4Busy { return candidate }
         }
         return "\(stem)_\(Int(Date().timeIntervalSince1970))"
+    }
+
+    /// Rigenera solo le note (con le impostazioni correnti) a partire dal
+    /// sidecar dei segmenti — senza ritrascrivere.
+    static func regenerateNotes(transcriptPath: String, update: @escaping Update) async {
+        let transcriptURL = URL(fileURLWithPath: transcriptPath)
+        let outDir = transcriptURL.deletingLastPathComponent()
+        var baseName = transcriptURL.lastPathComponent
+        for suffix in ["_transcript.txt", "_trascrizione.txt"] where baseName.hasSuffix(suffix) {
+            baseName = String(baseName.dropLast(suffix.count))
+        }
+        let notesURL = outDir.appendingPathComponent("\(baseName)_notes.md")
+        let sidecarURL = outDir.appendingPathComponent(".\(baseName).segments.json")
+
+        let transcript: Transcript
+        if let data = try? Data(contentsOf: sidecarURL),
+           let decoded = try? JSONDecoder().decode(Transcript.self, from: data) {
+            transcript = decoded
+        } else if let text = try? String(contentsOf: transcriptURL, encoding: .utf8) {
+            // Vecchie trascrizioni senza sidecar: niente timestamp, solo testo.
+            transcript = Transcript(segments: text.split(separator: "\n").map {
+                .init(start: nil, end: nil, text: String($0))
+            })
+        } else {
+            appLog("❌ Notes regeneration failed: transcript not readable")
+            update(.failed, 0, UpdateInfo(error: "transcript not readable"))
+            return
+        }
+
+        appLog("♻️ Regenerating notes: \(baseName)")
+        update(.summarizing, 0, nil)
+        do {
+            let notes = try await CallNotesGenerator.generateNotes(
+                transcript: transcript, callName: baseName
+            ) { p in update(.summarizing, p, nil) }
+            try notes.write(to: notesURL, atomically: true, encoding: .utf8)
+            appLog("   → \(notesURL.lastPathComponent)")
+            update(.done, 1, UpdateInfo(transcriptURL: transcriptURL, notesURL: notesURL))
+            Notifier.notifyDone(
+                title: String(localized: "Notes regenerated"),
+                body: baseName, transcript: transcriptURL, notes: notesURL)
+        } catch {
+            appLog("❌ Notes regeneration failed: \(error.localizedDescription)")
+            update(.failed, 0, UpdateInfo(error: error.localizedDescription))
+        }
     }
 
     private static func fail(_ videoURL: URL, update: Update, message: String) async {

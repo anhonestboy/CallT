@@ -40,17 +40,12 @@ enum ScreenshotRenderer {
         await snap(banner(), name: "banner.png", into: dir, settle: 0.5)
     }
 
-    /// Illustrative rendering of the menu content, styled like a menu.
+    /// Il popover reale della menu bar.
     private static func menuMock(state: AppState) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
-            MenuContent()
-        }
-        .environmentObject(state)
-        .buttonStyle(.plain)
-        .frame(width: 240, alignment: .leading)
-        .padding(14)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
-        .padding(16)
+        PopoverView()
+            .environmentObject(state)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .padding(16)
     }
 
     private static func banner() -> some View {

@@ -145,3 +145,39 @@
 /* Diarization */
 "Identify speakers (diarization)" = "Identifica chi parla (diarizzazione)";
 "Speaker turns are detected on-device (CoreML). The model (~100 MB) is downloaded once on first use." = "I turni di parola vengono rilevati on-device (CoreML). Il modello (~100 MB) viene scaricato una sola volta al primo uso.";
+
+/* Popover */
+"Record" = "Registra";
+"Drop a video or audio file here to transcribe it" = "Trascina qui un video o un audio per trascriverlo";
+"Regenerate notes" = "Rigenera le note";
+"Copy transcript" = "Copia la trascrizione";
+"Show in Finder" = "Mostra nel Finder";
+"Process again" = "Elabora di nuovo";
+"Global shortcut: ⌥⌘R" = "Scorciatoia globale: ⌥⌘R";
+"Notes regenerated" = "Note rigenerate";
+"Open notes" = "Apri le note";
+"Open transcript" = "Apri la trascrizione";
+
+/* Permissions */
+"Permissions" = "Permessi";
+"Screen & system audio recording" = "Registrazione schermo e audio di sistema";
+"Needed to record calls (any call app)." = "Serve per registrare le call (qualsiasi app di call).";
+"Enable…" = "Attiva…";
+"Needed to record your voice." = "Serve per registrare la tua voce.";
+"Allow…" = "Consenti…";
+"Open Settings…" = "Apri Impostazioni…";
+"One notification when each call is ready." = "Una notifica quando ogni call è pronta.";
+
+/* Onboarding */
+"Back" = "Indietro";
+"Continue" = "Continua";
+"Start using CallT" = "Inizia a usare CallT";
+"Record, transcribe and summarize your calls — on-device." = "Registra, trascrivi e riassumi le tue call — on-device.";
+"Recordings folder" = "Cartella registrazioni";
+"Every video or audio file that lands here gets transcribed automatically." = "Ogni video o audio che finisce qui viene trascritto automaticamente.";
+"CallT works entirely on your Mac. To record calls it needs these permissions — you can also grant them later, when you first hit Record." = "CallT lavora interamente sul tuo Mac. Per registrare le call servono questi permessi — puoi concederli anche più tardi, al primo utilizzo di Registra.";
+"Call notes" = "Note delle call";
+"After each transcription CallT writes organized Markdown notes: summary, topics, decisions, action items — with speakers identified. By default it uses Apple Intelligence on-device (free, private). You can switch to Claude, OpenRouter, DeepSeek or Ollama in Settings → Notes." = "Dopo ogni trascrizione CallT scrive note Markdown organizzate: sintesi, argomenti, decisioni, azioni — con i parlanti identificati. Di default usa Apple Intelligence on-device (gratuito, privato). Puoi passare a Claude, OpenRouter, DeepSeek o Ollama in Impostazioni → Note.";
+"Record from the menu bar icon or with ⌥⌘R" = "Registra dall'icona nella barra dei menu o con ⌥⌘R";
+"Drop files on the menu bar panel to transcribe them" = "Trascina i file sul pannello della barra dei menu per trascriverli";
+"Speakers: FluidAudio · Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama" = "Parlanti: FluidAudio · Note: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama";

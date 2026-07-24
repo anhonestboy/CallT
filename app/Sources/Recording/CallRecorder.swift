@@ -135,6 +135,8 @@ final class CallRecorder: NSObject, ObservableObject {
         stream = newStream
         isRecording = true
         startedAt = Date()
+        AppSettings.defaults.set(mode == .audioOnly ? "audioOnly" : "videoAudio", forKey: "lastRecordMode")
+        RecordingHUD.shared.show()
         appLog("🔴 Recording started (\(mode == .videoAudio ? "video and audio" : "audio only"))")
     }
 
@@ -165,6 +167,7 @@ final class CallRecorder: NSObject, ObservableObject {
         }
         isRecording = false
         startedAt = nil
+        RecordingHUD.shared.hide()
 
         if let tempURL, let finalURL {
             // Extra safety: the file can appear a moment after finalization.

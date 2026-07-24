@@ -36,6 +36,7 @@ struct GeneralTab: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var languages: [(id: String, label: String)] = []
     @State private var needsRelaunch = false
+    @StateObject private var permissions = PermissionsModel()
 
     var body: some View {
         Form {
@@ -81,6 +82,9 @@ struct GeneralTab: View {
                     }
                 }
             }
+            Section("Permissions") {
+                PermissionsRows(model: permissions)
+            }
             Section("Startup & alerts") {
                 Toggle("Notify when each transcription finishes", isOn: $notifyOnComplete)
                 Toggle("Open CallT at login", isOn: $launchAtLogin)
@@ -97,6 +101,7 @@ struct GeneralTab: View {
         }
         .formStyle(.grouped)
         .task { languages = await AppleTranscriber.availableLanguages() }
+        .onAppear { permissions.refresh() }
     }
 
     private func relaunch() {

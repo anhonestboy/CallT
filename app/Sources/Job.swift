@@ -32,6 +32,7 @@ struct Job: Identifiable, Equatable {
     var progress: Double = 0
     var error: String?
     var transcriptURL: URL?
+    var notesURL: URL?
     var startedAt: Date?
     var finishedAt: Date?
 
