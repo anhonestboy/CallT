@@ -130,7 +130,6 @@
 /* About */
 "About CallT" = "Informazioni su CallT";
 "Created by Maurizio Palumbo — werootbox" = "Creato da Maurizio Palumbo — werootbox";
-"Built with Claude Code (Anthropic)" = "Costruito con Claude Code (Anthropic)";
 "Recording: ScreenCaptureKit · Transcription: Apple Speech, whisper.cpp" = "Registrazione: ScreenCaptureKit · Trascrizione: Apple Speech, whisper.cpp";
 "Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama" = "Note: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama";
 "MIT license" = "Licenza MIT";

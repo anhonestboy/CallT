@@ -44,7 +44,6 @@ struct MenuContent: View {
         line(String(localized: "Created by Maurizio Palumbo — werootbox"), bold: true)
         line("github.com/anhonestboy/CallT", link: "https://github.com/anhonestboy/CallT")
         line("")
-        line(String(localized: "Built with Claude Code (Anthropic)"))
         line(String(localized: "Recording: ScreenCaptureKit · Transcription: Apple Speech, whisper.cpp"))
         line(String(localized: "Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama"))
         line("")
