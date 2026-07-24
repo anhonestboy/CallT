@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 APP_NAME=CallT
 BUNDLE_ID=com.werootbox.callt
-VERSION=1.0.2
+VERSION=1.1.0
 BUILD_DIR=build.noindex   # .noindex: Spotlight/Launchpad ignorano le build
 APP="$BUILD_DIR/$APP_NAME.app"
 SDK=$(xcrun --show-sdk-path --sdk macosx)
@@ -28,6 +28,17 @@ for LPROJ in Resources/*.lproj; do
   [ -d "$LPROJ" ] && cp -R "$LPROJ" "$APP/Contents/Resources/"
 done
 mkdir -p "$APP/Contents/Resources/en.lproj"   # base: le chiavi sono in inglese
+
+# ── Helper di diarizzazione (SPM, FluidAudio) ────────
+echo "→ Build diarizer…"
+if [ "$UNIVERSAL" = "--universal" ]; then
+  (cd tools/diarizer && swift build -c release --arch arm64 --arch x86_64 > /dev/null)
+  DIAR_BIN=tools/diarizer/.build/apple/Products/Release/callt-diarizer
+else
+  (cd tools/diarizer && swift build -c release > /dev/null)
+  DIAR_BIN=tools/diarizer/.build/release/callt-diarizer
+fi
+cp "$DIAR_BIN" "$APP/Contents/Resources/callt-diarizer"
 
 # ── Sorgenti ─────────────────────────────────────────
 find Sources -name '*.swift' | sort > "$BUILD_DIR/sources.txt"
@@ -111,6 +122,7 @@ IDENTITY=${CODESIGN_IDENTITY:-}
 if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning | grep -q "CallT Local Signing"; then
   IDENTITY="CallT Local Signing"
 fi
+codesign --force --sign "${IDENTITY:--}" "$APP/Contents/Resources/callt-diarizer"
 codesign --force --deep --sign "${IDENTITY:--}" "$APP"
 codesign --verify --strict "$APP"
 echo "→ Firma: ${IDENTITY:-ad-hoc}"

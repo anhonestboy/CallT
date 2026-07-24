@@ -153,6 +153,7 @@ struct ProcessingTab: View {
     @AppStorage(SettingsKey.deleteOriginal) private var deleteOriginal = false
     @AppStorage(SettingsKey.keepAudio) private var keepAudio = false
     @AppStorage(SettingsKey.generateSRT) private var generateSRT = false
+    @AppStorage(SettingsKey.diarizeSpeakers) private var diarize = true
 
     private var whisperAvailable: Bool { WhisperTranscriber.detectBinary() != nil }
 
@@ -172,6 +173,11 @@ struct ProcessingTab: View {
                         Text(String(localized: "Model not found at \(whisperModelPath)"))
                             .font(.footnote).foregroundStyle(.orange)
                     }
+                }
+                Toggle("Identify speakers (diarization)", isOn: $diarize)
+                if diarize {
+                    Text("Speaker turns are detected on-device (CoreML). The model (~100 MB) is downloaded once on first use.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 Toggle("Also generate subtitles (.srt)", isOn: $generateSRT)
                 Toggle("Keep the extracted audio (.wav)", isOn: $keepAudio)

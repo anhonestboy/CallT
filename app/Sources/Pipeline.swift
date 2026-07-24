@@ -119,7 +119,7 @@ enum Pipeline {
                 engine = AppleTranscriber()
             }
 
-            let transcript: Transcript
+            var transcript: Transcript
             do {
                 transcript = try await engine.transcribe(
                     audioURL: audioForEngine,
@@ -128,6 +128,26 @@ enum Pipeline {
             } catch {
                 await fail(videoURL, update: update, message: "Transcription failed: \(error.localizedDescription)")
                 return
+            }
+
+            // 2a. Chi parla (diarizzazione) — non bloccante
+            if AppSettings.diarizeSpeakers && SpeakerLabeler.available {
+                do {
+                    let wavForDiarization: URL
+                    if audioForEngine.pathExtension.lowercased() == "wav" {
+                        wavForDiarization = audioForEngine
+                    } else {
+                        wavForDiarization = try await extractWAVResiliently(
+                            from: videoURL, to: tempDir.appendingPathComponent("diar.wav"))
+                    }
+                    appLog("🗣️ Identifying speakers…")
+                    let turns = try await SpeakerLabeler.diarize(wav: wavForDiarization)
+                    let speakers = Set(turns.map(\.speaker)).count
+                    transcript = SpeakerLabeler.apply(turns, to: transcript)
+                    appLog("   \(speakers) speaker\(speakers == 1 ? "" : "s") identified")
+                } catch {
+                    appLog("⚠️ Speaker identification failed (non-blocking): \(error.localizedDescription)")
+                }
             }
 
             do {

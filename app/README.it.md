@@ -9,6 +9,7 @@ Metti un video o un audio nella cartella osservata (o premi **Registra chiamata*
 ## Funzionalità
 
 - **Registrazione delle call** (ScreenCaptureKit): audio di sistema di *qualsiasi* strumento (Zoom, Meet, Teams…) più il microfono — con video dello schermo oppure solo audio (in modalità solo-audio lo schermo non viene mai scritto su disco).
+- **Identificazione dei parlanti (diarizzazione)** — tutta on-device (CoreML via FluidAudio): la trascrizione diventa turni "Speaker 1/2/…" e le note attribuiscono posizioni e affermazioni a ciascun partecipante, usando i nomi reali quando emergono dalla conversazione.
 - **Trascrizione on-device** col motore vocale di macOS 26 (lo stesso di Note e Memo Vocali) — nessuna dipendenza esterna. In alternativa usa `whisper-cli` + modello ggml se installati.
 - **Note organizzate (.md)**: dopo ogni trascrizione — sintesi, argomenti con dettagli e timestamp, decisioni, azioni, domande aperte, nella lingua della call. Motori: Apple Intelligence on-device (default, gratuito, map/reduce per call lunghe), Claude API, OpenRouter, DeepSeek, Ollama locale o endpoint OpenAI-compatibile (chiavi API nel Portachiavi).
 - **Compressione HEVC intelligente**: bitrate calcolato dal sorgente (mai oltre il 65% dell'originale), downscale opzionale a 1080p, e garanzia che il file compresso venga tenuto solo se davvero più piccolo.
@@ -60,6 +61,7 @@ Creato da **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
 Costruito con [Claude Code](https://claude.com/claude-code) (Anthropic). CallT poggia su ottime spalle:
 
 - **Framework Apple** — ScreenCaptureKit (registrazione), Speech/SpeechAnalyzer (trascrizione), FoundationModels/Apple Intelligence (note on-device), AVFoundation (elaborazione audio/video), App Intents (Comandi Rapidi)
+- **[FluidAudio](https://github.com/FluidInference/FluidAudio)** (Apache-2.0) — diarizzazione on-device
 - **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)** — motore di trascrizione opzionale
 - **[ffmpeg](https://ffmpeg.org)** — supporto MKV opzionale
 - Provider di note opzionali: [Anthropic](https://www.anthropic.com), [OpenRouter](https://openrouter.ai), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com)

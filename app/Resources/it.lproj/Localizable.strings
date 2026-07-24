@@ -141,3 +141,7 @@
 "Very detailed" = "Molto dettagliata";
 "Include timestamps" = "Includi i timestamp";
 "After each transcription a “name_notes.md” file is created: summary, topics with details, decisions, action items and open questions. Higher detail levels produce longer, more thorough notes." = "Dopo ogni trascrizione viene creato “nome_notes.md”: sintesi, argomenti con dettagli, decisioni, azioni e domande aperte. I livelli di dettaglio più alti producono note più lunghe e approfondite.";
+
+/* Diarization */
+"Identify speakers (diarization)" = "Identifica chi parla (diarizzazione)";
+"Speaker turns are detected on-device (CoreML). The model (~100 MB) is downloaded once on first use." = "I turni di parola vengono rilevati on-device (CoreML). Il modello (~100 MB) viene scaricato una sola volta al primo uso.";

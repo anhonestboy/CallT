@@ -9,6 +9,7 @@ Drop a video or audio file into a watched folder (or hit **Record call**) and Ca
 ## Features
 
 - **Call recording** (ScreenCaptureKit): system audio from *any* call tool (Zoom, Meet, Teams…) plus your microphone — with screen video, or audio-only (the screen is never written to disk in audio-only mode).
+- **Speaker identification (diarization)** — fully on-device (CoreML via FluidAudio): transcripts become "Speaker 1/2/…" turns and the notes attribute positions and statements to each participant, using real names when the conversation reveals them.
 - **On-device transcription** with the macOS 26 speech engine (the same one used by Notes and Voice Memos) — no external dependencies. Optionally uses `whisper-cli` + a ggml model when installed.
 - **Organized notes (.md)**: after each transcription — summary, topics with details and timestamps, decisions, action items, open questions, written in the language of the call. Engines: Apple Intelligence on-device (default, free, map/reduce for long calls), Claude API, OpenRouter, DeepSeek, local Ollama, or any OpenAI-compatible endpoint (API keys live in the Keychain).
 - **Smart HEVC compression**: bitrate computed from the source (never above 65% of the original), optional 1080p downscale, and a guarantee the compressed file is kept only when genuinely smaller.
@@ -85,6 +86,7 @@ Created by **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
 Built with [Claude Code](https://claude.com/claude-code) (Anthropic). CallT stands on excellent shoulders:
 
 - **Apple frameworks** — ScreenCaptureKit (recording), Speech/SpeechAnalyzer (transcription), FoundationModels/Apple Intelligence (on-device notes), AVFoundation (audio/video processing), App Intents (Shortcuts)
+- **[FluidAudio](https://github.com/FluidInference/FluidAudio)** (Apache-2.0) — on-device speaker diarization
 - **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)** — optional transcription engine
 - **[ffmpeg](https://ffmpeg.org)** — optional MKV support
 - Optional notes providers: [Anthropic](https://www.anthropic.com), [OpenRouter](https://openrouter.ai), [DeepSeek](https://deepseek.com), [Ollama](https://ollama.com)

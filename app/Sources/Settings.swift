@@ -26,6 +26,7 @@ enum SettingsKey {
     static let notesBaseURL = "notesBaseURL"
     /// "normal" | "detailed" | "verydetailed"
     static let notesDetail = "notesDetail"
+    static let diarizeSpeakers = "diarizeSpeakers"
     static let notesTimestamps = "notesTimestamps"
 }
 
@@ -84,6 +85,7 @@ struct AppSettings {
             SettingsKey.notesEngine: "apple",
             SettingsKey.notesBaseURL: "",
             SettingsKey.notesDetail: "normal",
+            SettingsKey.diarizeSpeakers: true,
             SettingsKey.notesTimestamps: true,
         ])
     }
@@ -116,6 +118,7 @@ struct AppSettings {
     static var notesEngine: String { defaults.string(forKey: SettingsKey.notesEngine) ?? "apple" }
     static var notesBaseURL: String { defaults.string(forKey: SettingsKey.notesBaseURL) ?? "" }
     static var notesDetail: String { defaults.string(forKey: SettingsKey.notesDetail) ?? "normal" }
+    static var diarizeSpeakers: Bool { defaults.bool(forKey: SettingsKey.diarizeSpeakers) }
     static var notesTimestamps: Bool { defaults.bool(forKey: SettingsKey.notesTimestamps) }
 
     /// Modello per motore di note (chiave dedicata per motore, con default sensato).
