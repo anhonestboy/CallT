@@ -26,6 +26,7 @@ struct CallTApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if ScreenshotRenderer.runIfRequested() { return }
         AppState.shared.onLaunch()
         // Flag di collaudo: registra qualche secondo e ferma da solo.
         if CommandLine.arguments.contains("--test-record-audio") {

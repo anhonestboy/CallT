@@ -26,7 +26,7 @@ struct SettingsView: View {
 
 // MARK: - General
 
-private struct GeneralTab: View {
+struct GeneralTab: View {
     @EnvironmentObject private var state: AppState
     @AppStorage(SettingsKey.watchFolder) private var watchFolder = ""
     @AppStorage(SettingsKey.outputFolder) private var outputFolder = ""
@@ -144,7 +144,7 @@ private struct GeneralTab: View {
 
 // MARK: - Processing
 
-private struct ProcessingTab: View {
+struct ProcessingTab: View {
     @AppStorage(SettingsKey.engine) private var engine = TranscriptionEngineKind.apple.rawValue
     @AppStorage(SettingsKey.whisperModelPath) private var whisperModelPath = ""
     @AppStorage(SettingsKey.compressVideo) private var compressVideo = true
@@ -200,7 +200,7 @@ private struct ProcessingTab: View {
 
 // MARK: - Notes
 
-private struct NotesTab: View {
+struct NotesTab: View {
     @AppStorage(SettingsKey.notesEnabled) private var enabled = true
     @AppStorage(SettingsKey.notesEngine) private var engine = "apple"
     @AppStorage(SettingsKey.notesBaseURL) private var baseURL = ""
@@ -289,7 +289,7 @@ private struct NotesTab: View {
 
 // MARK: - Automation
 
-private struct AutomationTab: View {
+struct AutomationTab: View {
     @AppStorage(SettingsKey.deliveryShortcut) private var deliveryShortcut = ""
     @State private var shortcuts: [String] = []
     @State private var testResult: String?
@@ -349,7 +349,7 @@ private struct AutomationTab: View {
 
 // MARK: - Log
 
-private struct LogTab: View {
+struct LogTab: View {
     @ObservedObject private var logStore = LogStore.shared
 
     var body: some View {

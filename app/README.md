@@ -17,6 +17,18 @@ Drop a video or audio file into a watched folder (or hit **Record call**) and Ca
 - Audio-only files (m4a, mp3, wav, aiff, flac) are transcribed too — voice memos welcome.
 - MKV supported when ffmpeg is installed (AVFoundation cannot read it).
 
+## Screenshots
+
+| Menu | Notes engines |
+|---|---|
+| ![Menu](../docs/screenshots/menu.png) | ![Notes settings](../docs/screenshots/settings-notes.png) |
+
+| Processing | General |
+|---|---|
+| ![Processing settings](../docs/screenshots/settings-processing.png) | ![General settings](../docs/screenshots/settings-general.png) |
+
+Screenshots are rendered straight from the real UI: `CallT --render-screenshots <dir>`.
+
 ## Requirements
 
 - macOS 26 (Tahoe) or later. Xcode 26 to build.

@@ -17,6 +17,18 @@ Metti un video o un audio nella cartella osservata (o premi **Registra chiamata*
 - Anche i file solo-audio (m4a, mp3, wav, aiff, flac) vengono trascritti — memo vocali benvenuti.
 - MKV supportato se ffmpeg è installato (AVFoundation non lo legge).
 
+## Screenshot
+
+| Menu | Motori delle note |
+|---|---|
+| ![Menu](../docs/screenshots/menu.png) | ![Impostazioni note](../docs/screenshots/settings-notes.png) |
+
+| Elaborazione | Generale |
+|---|---|
+| ![Impostazioni elaborazione](../docs/screenshots/settings-processing.png) | ![Impostazioni generale](../docs/screenshots/settings-general.png) |
+
+Gli screenshot sono renderizzati direttamente dalla UI reale: `CallT --render-screenshots <dir>`.
+
 ## Requisiti
 
 - macOS 26 (Tahoe) o successivo. Xcode 26 per compilare.
