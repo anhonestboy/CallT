@@ -196,8 +196,11 @@
 "Version" = "Versione";
 "Check for updates" = "Controlla aggiornamenti";
 "CallT %@ is available" = "È disponibile CallT %@";
-"Download it from the GitHub releases page." = "Scaricala dalla pagina delle release su GitHub.";
-"You are on %@. Download the update from GitHub." = "Hai la versione %@. Scarica l'aggiornamento da GitHub.";
+"Choose “Check for updates” in Settings → General to install it." = "Scegli “Controlla aggiornamenti” in Impostazioni → Generali per installarlo.";
+"You are on %@. CallT can install the update and relaunch automatically." = "Hai la versione %@. CallT può installare l'aggiornamento e riavviarsi automaticamente.";
+"Install and relaunch" = "Installa e riavvia";
+"Update failed" = "Aggiornamento non riuscito";
+"You can download it manually from the GitHub releases page." = "Puoi scaricarlo manualmente dalla pagina delle release su GitHub.";
 "Download" = "Scarica";
 "Later" = "Più tardi";
 "You're up to date" = "Sei aggiornato";
