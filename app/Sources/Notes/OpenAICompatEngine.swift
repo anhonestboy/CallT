@@ -57,7 +57,10 @@ struct OpenAICompatEngine: NotesEngine {
             body: [
                 "model": model,
                 "stream": true,
-                "max_tokens": 8192,
+                // I modelli con reasoning (es. DeepSeek) consumano questo budget
+                // anche per la fase di pensiero: 8k bastava a troncare la risposta
+                // prima di qualunque contenuto.
+                "max_tokens": 32768,
                 "messages": [
                     ["role": "system", "content": instructions],
                     ["role": "user", "content": prompt],
