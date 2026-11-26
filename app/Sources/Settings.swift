@@ -28,6 +28,8 @@ enum SettingsKey {
     static let notesDetail = "notesDetail"
     static let diarizeSpeakers = "diarizeSpeakers"
     static let notesTimestamps = "notesTimestamps"
+    /// "auto" | "always" | "never" — cattura del microfono via ScreenCaptureKit.
+    static let captureMic = "captureMic"
 }
 
 enum TranscriptionEngineKind: String, CaseIterable, Identifiable {
@@ -87,6 +89,7 @@ struct AppSettings {
             SettingsKey.notesDetail: "normal",
             SettingsKey.diarizeSpeakers: true,
             SettingsKey.notesTimestamps: true,
+            SettingsKey.captureMic: "auto",
         ])
     }
 
@@ -120,6 +123,11 @@ struct AppSettings {
     static var notesDetail: String { defaults.string(forKey: SettingsKey.notesDetail) ?? "normal" }
     static var diarizeSpeakers: Bool { defaults.bool(forKey: SettingsKey.diarizeSpeakers) }
     static var notesTimestamps: Bool { defaults.bool(forKey: SettingsKey.notesTimestamps) }
+
+    /// Cattura del microfono: "auto" la prende solo se nessun'altra app la sta
+    /// usando (così la call mantiene l'accesso esclusivo alla Voice Processing),
+    /// "always" la forza, "never" registra solo l'audio di sistema.
+    static var captureMic: String { defaults.string(forKey: SettingsKey.captureMic) ?? "auto" }
 
     /// Modello per motore di note (chiave dedicata per motore, con default sensato).
     static func notesModel(for engine: String) -> String {

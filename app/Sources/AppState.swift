@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import Combine
 import UniformTypeIdentifiers
 
 /// Stato centrale dell'app: monitoraggio, coda seriale di elaborazione, jobs per la UI.
@@ -15,6 +16,7 @@ final class AppState: ObservableObject {
     private var watcher: FolderWatcher?
     private var pendingQueue: [URL] = []
     private var isProcessing = false
+    private var recorderCancellable: AnyCancellable?
     private static let maxVisibleJobs = 12
 
     var currentJob: Job? { jobs.last(where: { !$0.isFinished }) }
@@ -28,6 +30,22 @@ final class AppState: ObservableObject {
         appLog("CallT started")
         refreshRecents()
         UpdateChecker.autoCheck()
+        // La coda di elaborazione non deve mai girare mentre si registra:
+        // trascrizione + diarizzazione + ri-encoding saturano Neural Engine,
+        // GPU e disco e degradano la call in corso.
+        recorderCancellable = CallRecorder.shared.$isRecording
+            .removeDuplicates()
+            .sink { recording in
+                Task { @MainActor in
+                    if recording {
+                        if !AppState.shared.pendingQueue.isEmpty || AppState.shared.isProcessing {
+                            appLog("⏸️ Elaborazione in pausa: registrazione in corso")
+                        }
+                    } else {
+                        AppState.shared.processNextIfIdle()
+                    }
+                }
+            }
         if AppSettings.monitoringEnabled {
             startMonitoring()
         }
@@ -149,6 +167,7 @@ final class AppState: ObservableObject {
 
     private func processNextIfIdle() {
         guard !isProcessing, !pendingQueue.isEmpty else { return }
+        guard !CallRecorder.shared.isRecording else { return }
         let url = pendingQueue.removeFirst()
         queuedCount = pendingQueue.count
         isProcessing = true

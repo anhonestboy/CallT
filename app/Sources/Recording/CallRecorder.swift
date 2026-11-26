@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import AppKit
 import ScreenCaptureKit
+import CoreAudio
 
 /// Records calls with ScreenCaptureKit: system audio (any call tool)
 /// plus microphone, with or without screen video. The finished file is
@@ -96,10 +97,24 @@ final class CallRecorder: NSObject, ObservableObject {
         config.excludesCurrentProcessAudio = true
         config.sampleRate = 48_000
         config.channelCount = 2
-        config.captureMicrophone = true
-        let micID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
-        if !micID.isEmpty {
-            config.microphoneCaptureDeviceID = micID
+
+        // Microfono: di default lo prendiamo solo se nessun'altra app lo sta
+        // già usando. Durante una call la WebRTC dell'altra app ha bisogno
+        // dell'accesso esclusivo alla Voice Processing: contenderselo rompe
+        // l'echo cancellation e degrada la qualità della call.
+        let micMode = AppSettings.captureMic
+        let micBusy = Self.defaultInputIsRunningSomewhere()
+        let wantMic = micMode != "never" && !(micMode == "auto" && micBusy)
+        config.captureMicrophone = wantMic
+        if wantMic {
+            let micID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
+            if !micID.isEmpty {
+                config.microphoneCaptureDeviceID = micID
+            }
+        } else {
+            appLog(micMode == "auto" && micBusy
+                ? "🎙️ Microfono occupato da un'altra app: registro solo l'audio di sistema (la call resta padrona del microfono)"
+                : "🎙️ Microfono disattivato: registro solo l'audio di sistema")
         }
         switch mode {
         case .videoAudio:
@@ -138,9 +153,11 @@ final class CallRecorder: NSObject, ObservableObject {
             finalURL = watch.appendingPathComponent("\(baseName) \(stamp).mp4")
         case .audioOnly:
             let temp = watch.appendingPathComponent(".recording-in-progress.m4a")
-            let writer = try AudioOnlyWriter(url: temp)
+            let writer = try AudioOnlyWriter(url: temp, withMic: wantMic)
             try newStream.addStreamOutput(writer, type: .audio, sampleHandlerQueue: writer.queue)
-            try newStream.addStreamOutput(writer, type: .microphone, sampleHandlerQueue: writer.queue)
+            if wantMic {
+                try newStream.addStreamOutput(writer, type: .microphone, sampleHandlerQueue: writer.queue)
+            }
             audioWriter = writer
             tempURL = temp
             finalURL = watch.appendingPathComponent("\(baseName) \(stamp).m4a")
@@ -202,6 +219,31 @@ final class CallRecorder: NSObject, ObservableObject {
         finalURL = nil
     }
 
+    /// Vero se il dispositivo di input predefinito è già aperto da un altro
+    /// processo (tipicamente l'app della call). In quel caso CallT non deve
+    /// prendere il microfono: contenderselo rompe l'echo cancellation.
+    static func defaultInputIsRunningSomewhere() -> Bool {
+        var deviceAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain)
+        var device = AudioDeviceID(0)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject),
+                                         &deviceAddr, 0, nil, &size, &device) == noErr,
+              device != kAudioObjectUnknown else { return false }
+
+        var runAddr = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain)
+        var running: UInt32 = 0
+        var runSize = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(device, &runAddr, 0, nil, &runSize, &running) == noErr
+        else { return false }
+        return running != 0
+    }
+
     private static let nameFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH.mm"
@@ -223,16 +265,17 @@ extension CallRecorder: SCRecordingOutputDelegate {
     }
 }
 
-/// Writer for audio-only mode: one .m4a file with two AAC tracks
-/// (system audio + microphone). The screen is never written to disk.
+/// Writer for audio-only mode: one .m4a file with one or two AAC tracks
+/// (system audio, plus the microphone when it is available). The screen is
+/// never written to disk.
 final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
     let queue = DispatchQueue(label: "com.werootbox.callt.recording.audio")
     private let writer: AVAssetWriter
     private let systemInput: AVAssetWriterInput
-    private let micInput: AVAssetWriterInput
+    private let micInput: AVAssetWriterInput?
     private var sessionStarted = false
 
-    init(url: URL) throws {
+    init(url: URL, withMic: Bool = true) throws {
         try? FileManager.default.removeItem(at: url)
         // fileType .mp4 (ISO-BMFF, same family as M4A) so two tracks can be written.
         writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
@@ -243,11 +286,16 @@ final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
             AVEncoderBitRateKey: 128_000,
         ]
         systemInput = AVAssetWriterInput(mediaType: .audio, outputSettings: aac)
-        micInput = AVAssetWriterInput(mediaType: .audio, outputSettings: aac)
         systemInput.expectsMediaDataInRealTime = true
-        micInput.expectsMediaDataInRealTime = true
         writer.add(systemInput)
-        writer.add(micInput)
+        if withMic {
+            let mic = AVAssetWriterInput(mediaType: .audio, outputSettings: aac)
+            mic.expectsMediaDataInRealTime = true
+            writer.add(mic)
+            micInput = mic
+        } else {
+            micInput = nil
+        }
         super.init()
         guard writer.startWriting() else {
             throw writer.error ?? TranscriptionError(message: "could not open the audio file")
@@ -255,12 +303,19 @@ final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
     }
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-        guard sampleBuffer.isValid, type == .audio || type == .microphone else { return }
+        guard sampleBuffer.isValid else { return }
+        let input: AVAssetWriterInput
+        switch type {
+        case .audio: input = systemInput
+        case .microphone:
+            guard let mic = micInput else { return }
+            input = mic
+        default: return
+        }
         if !sessionStarted {
             sessionStarted = true
             writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
         }
-        let input = type == .audio ? systemInput : micInput
         // Real time: drop the buffer if the writer is behind.
         if input.isReadyForMoreMediaData {
             input.append(sampleBuffer)
@@ -272,7 +327,7 @@ final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
             queue.async {
                 if self.sessionStarted {
                     self.systemInput.markAsFinished()
-                    self.micInput.markAsFinished()
+                    self.micInput?.markAsFinished()
                     self.writer.finishWriting { cont.resume() }
                 } else {
                     self.writer.cancelWriting()
