@@ -89,7 +89,7 @@ struct AppSettings {
             SettingsKey.notesDetail: "normal",
             SettingsKey.diarizeSpeakers: true,
             SettingsKey.notesTimestamps: true,
-            SettingsKey.captureMic: "auto",
+            SettingsKey.captureMic: "always",
         ])
     }
 
@@ -124,10 +124,10 @@ struct AppSettings {
     static var diarizeSpeakers: Bool { defaults.bool(forKey: SettingsKey.diarizeSpeakers) }
     static var notesTimestamps: Bool { defaults.bool(forKey: SettingsKey.notesTimestamps) }
 
-    /// Cattura del microfono: "auto" la prende solo se nessun'altra app la sta
-    /// usando (così la call mantiene l'accesso esclusivo alla Voice Processing),
-    /// "always" la forza, "never" registra solo l'audio di sistema.
-    static var captureMic: String { defaults.string(forKey: SettingsKey.captureMic) ?? "auto" }
+    /// Cattura del microfono: "always" (default) registra sempre la tua voce via
+    /// AVCapture, su un percorso audio separato da quello dell'app della call;
+    /// "never" registra solo l'audio di sistema (diagnostica).
+    static var captureMic: String { defaults.string(forKey: SettingsKey.captureMic) ?? "always" }
 
     /// Modello per motore di note (chiave dedicata per motore, con default sensato).
     static func notesModel(for engine: String) -> String {

@@ -2,7 +2,6 @@ import Foundation
 import AVFoundation
 import AppKit
 import ScreenCaptureKit
-import CoreAudio
 
 /// Records calls with ScreenCaptureKit: system audio (any call tool)
 /// plus microphone, with or without screen video. The finished file is
@@ -23,6 +22,7 @@ final class CallRecorder: NSObject, ObservableObject {
     private var stream: SCStream?
     private var recordingOutput: SCRecordingOutput?
     private var audioWriter: AudioOnlyWriter?
+    private var micCapture: MicCapture?
     private var tempURL: URL?
     private var finalURL: URL?
     /// Resolved when SCRecordingOutput finishes finalizing the file.
@@ -98,24 +98,14 @@ final class CallRecorder: NSObject, ObservableObject {
         config.sampleRate = 48_000
         config.channelCount = 2
 
-        // Microfono: di default lo prendiamo solo se nessun'altra app lo sta
-        // già usando. Durante una call la WebRTC dell'altra app ha bisogno
-        // dell'accesso esclusivo alla Voice Processing: contenderselo rompe
-        // l'echo cancellation e degrada la qualità della call.
-        let micMode = AppSettings.captureMic
-        let micBusy = Self.defaultInputIsRunningSomewhere()
-        let wantMic = micMode != "never" && !(micMode == "auto" && micBusy)
-        config.captureMicrophone = wantMic
-        if wantMic {
-            let micID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
-            if !micID.isEmpty {
-                config.microphoneCaptureDeviceID = micID
-            }
-        } else {
-            appLog(micMode == "auto" && micBusy
-                ? "🎙️ Microfono occupato da un'altra app: registro solo l'audio di sistema (la call resta padrona del microfono)"
-                : "🎙️ Microfono disattivato: registro solo l'audio di sistema")
-        }
+        // Il microfono NON si prende con ScreenCaptureKit: SCK si impossessa
+        // del dispositivo di ingresso e rompe la Voice Processing dell'app
+        // della call (echo cancellation). In modalità solo-audio usiamo
+        // AVCapture (MicCapture), che legge lo stesso dispositivo senza
+        // riconfigurarlo. In modalità video SCRecordingOutput vuole il mic
+        // dentro lo stream, quindi lì resta SCK.
+        let wantsMic = AppSettings.captureMic != "never"
+        config.captureMicrophone = false
         switch mode {
         case .videoAudio:
             // 1x resolution (points): plenty for calls, lighter files.
@@ -123,6 +113,7 @@ final class CallRecorder: NSObject, ObservableObject {
             config.height = Int(captureSize.height)
             config.minimumFrameInterval = CMTime(value: 1, timescale: 15)
             config.showsCursor = true
+            config.captureMicrophone = wantsMic
         case .audioOnly:
             // No video output is ever written: the stream's video stays at
             // the bare minimum and is discarded.
@@ -153,11 +144,13 @@ final class CallRecorder: NSObject, ObservableObject {
             finalURL = watch.appendingPathComponent("\(baseName) \(stamp).mp4")
         case .audioOnly:
             let temp = watch.appendingPathComponent(".recording-in-progress.m4a")
-            let writer = try AudioOnlyWriter(url: temp, withMic: wantMic)
+            let writer = try AudioOnlyWriter(url: temp, withMic: wantsMic)
             try newStream.addStreamOutput(writer, type: .audio, sampleHandlerQueue: writer.queue)
-            if wantMic {
-                try newStream.addStreamOutput(writer, type: .microphone, sampleHandlerQueue: writer.queue)
-            }
+            // Il microfono entra da AVCapture, su un percorso audio separato:
+            // nessuna interferenza con il dispositivo usato dalla call.
+            // Parte dopo startCapture, così la traccia di sistema definisce
+            // l'istante zero del file.
+            if wantsMic { micCapture = MicCapture() }
             audioWriter = writer
             tempURL = temp
             finalURL = watch.appendingPathComponent("\(baseName) \(stamp).m4a")
@@ -165,6 +158,10 @@ final class CallRecorder: NSObject, ObservableObject {
 
         try await newStream.startCapture()
         stream = newStream
+        if let mic = micCapture, let writer = audioWriter {
+            let started = mic.start(onBuffer: { buffer in writer.appendMic(buffer) })
+            if !started { micCapture = nil }
+        }
         isRecording = true
         startedAt = Date()
         AppSettings.defaults.set(mode == .audioOnly ? "audioOnly" : "videoAudio", forKey: "lastRecordMode")
@@ -193,6 +190,8 @@ final class CallRecorder: NSObject, ObservableObject {
         }
         stream = nil
         recordingOutput = nil
+        micCapture?.stop()
+        micCapture = nil
         if let audioWriter {
             await audioWriter.finish()
             self.audioWriter = nil
@@ -217,31 +216,6 @@ final class CallRecorder: NSObject, ObservableObject {
         }
         tempURL = nil
         finalURL = nil
-    }
-
-    /// Vero se il dispositivo di input predefinito è già aperto da un altro
-    /// processo (tipicamente l'app della call). In quel caso CallT non deve
-    /// prendere il microfono: contenderselo rompe l'echo cancellation.
-    static func defaultInputIsRunningSomewhere() -> Bool {
-        var deviceAddr = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultInputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain)
-        var device = AudioDeviceID(0)
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject),
-                                         &deviceAddr, 0, nil, &size, &device) == noErr,
-              device != kAudioObjectUnknown else { return false }
-
-        var runAddr = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain)
-        var running: UInt32 = 0
-        var runSize = UInt32(MemoryLayout<UInt32>.size)
-        guard AudioObjectGetPropertyData(device, &runAddr, 0, nil, &runSize, &running) == noErr
-        else { return false }
-        return running != 0
     }
 
     private static let nameFormatter: DateFormatter = {
@@ -274,6 +248,7 @@ final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
     private let systemInput: AVAssetWriterInput
     private let micInput: AVAssetWriterInput?
     private var sessionStarted = false
+    private var micAppendFailed = false
 
     init(url: URL, withMic: Bool = true) throws {
         try? FileManager.default.removeItem(at: url)
@@ -303,22 +278,31 @@ final class AudioOnlyWriter: NSObject, SCStreamOutput, @unchecked Sendable {
     }
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-        guard sampleBuffer.isValid else { return }
-        let input: AVAssetWriterInput
-        switch type {
-        case .audio: input = systemInput
-        case .microphone:
-            guard let mic = micInput else { return }
-            input = mic
-        default: return
+        guard type == .audio else { return }
+        append(sampleBuffer, to: systemInput)
+    }
+
+    /// Microfono da AVCapture: arriva su un'altra coda, ma entra nella coda del
+    /// writer così `startSession` viene chiamata una volta sola e l'ordine dei
+    /// due percorsi resta deterministico.
+    func appendMic(_ buffer: CMSampleBuffer) {
+        queue.async { [weak self] in
+            guard let self, let mic = self.micInput else { return }
+            self.append(buffer, to: mic, isMic: true)
         }
+    }
+
+    private func append(_ buffer: CMSampleBuffer, to input: AVAssetWriterInput, isMic: Bool = false) {
+        guard CMSampleBufferIsValid(buffer), CMSampleBufferGetNumSamples(buffer) > 0 else { return }
         if !sessionStarted {
             sessionStarted = true
-            writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(buffer))
         }
-        // Real time: drop the buffer if the writer is behind.
-        if input.isReadyForMoreMediaData {
-            input.append(sampleBuffer)
+        // Real time: se il writer è indietro il buffer si scarta.
+        guard input.isReadyForMoreMediaData else { return }
+        if !input.append(buffer), isMic, !micAppendFailed {
+            micAppendFailed = true
+            appLog("⚠️ Microfono non allineabile nella traccia: continuo con il solo audio di sistema (\(writer.error?.localizedDescription ?? "formato non compatibile"))")
         }
     }
 
