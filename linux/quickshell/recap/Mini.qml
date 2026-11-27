@@ -6,6 +6,7 @@ import Quickshell.Wayland
 
 // Pannello ridotto: pillola sotto la barra, in alto a destra (come la barretta compatta del Mac).
 // Clic sul timer o su "Apri" riapre il pannello; ⭐ segna; stop chiede conferma.
+// Si trascina dove si vuole (la posizione resta); doppio clic la riporta sotto la barra.
 // Si mostra con `qs ipc -c recap call mini open` (avvio della call, "Riduci" nel pannello) e
 // sparisce da sola a call conclusa, dopo aver offerto le note.
 //
@@ -30,10 +31,10 @@ PanelWindow {
     }
     function hide() { MiniState.shown = false }
 
-    readonly property int barHeight: 36
+    // Tutto lo schermo, per poter trascinare la pillola ovunque: la maschera d'input copre
+    // solo la pillola, il resto è trasparente e lascia passare i clic.
     color: "transparent"
-    anchors { top: true; left: true; right: true }
-    implicitHeight: barHeight + 6 + 52 + 12
+    anchors { top: true; left: true; right: true; bottom: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "recap-mini"
@@ -107,8 +108,12 @@ PanelWindow {
 
     Rectangle {
         id: pill
-        anchors { right: parent.right; rightMargin: 12 }
-        y: mini.barHeight + 6 - (1 - mini.t) * 6
+        // Posizione dal bordo destro (la pillola cresce verso sinistra) e dall'alto, più lo
+        // spostamento del trascinamento in corso; sempre dentro lo schermo.
+        property real dragDx: 0
+        property real dragDy: 0
+        x: Math.max(8, Math.min(mini.width - width - 8, mini.width - width - MiniState.right + dragDx))
+        y: Math.max(4, Math.min(mini.height - height - 8, MiniState.top + dragDy)) - (1 - mini.t) * 6
         width: row.implicitWidth + 16
         height: 52
         transformOrigin: Item.TopRight
@@ -118,6 +123,36 @@ PanelWindow {
         opacity: mini.t
         scale: 0.96 + 0.04 * mini.t
 
+        // Trascina da qualunque punto che non sia un bottone; clic sul timer = riapri il pannello;
+        // doppio clic fuori dal timer = torna al posto di partenza.
+        MouseArea {
+            id: drag
+            anchors.fill: parent
+            hoverEnabled: true
+            property point start
+            property bool moved: false
+            readonly property bool overTimer: timerBox.visible && containsMouse
+                && timerBox.contains(mapToItem(timerBox, mouseX, mouseY))
+            cursorShape: pressed && moved ? Qt.ClosedHandCursor : overTimer ? Qt.PointingHandCursor : Qt.OpenHandCursor
+            onPressed: mouse => { start = mapToItem(null, mouse.x, mouse.y); moved = false }
+            onPositionChanged: mouse => {
+                if (!pressed) return
+                const p = mapToItem(null, mouse.x, mouse.y)
+                if (!moved && Math.abs(p.x - start.x) + Math.abs(p.y - start.y) < 5) return
+                moved = true
+                pill.dragDx = p.x - start.x
+                pill.dragDy = p.y - start.y
+            }
+            onReleased: {
+                if (!moved) return
+                MiniState.moveTo(mini.width - pill.width - pill.x, pill.y + (1 - mini.t) * 6)
+                pill.dragDx = 0
+                pill.dragDy = 0
+            }
+            onClicked: if (!moved && overTimer) mini.expand()
+            onDoubleClicked: if (!overTimer) MiniState.reset()
+        }
+
         RowLayout {
             id: row
             anchors { verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: 8 }
@@ -125,9 +160,10 @@ PanelWindow {
 
             // in call: puntino e timer (clic = riapri il pannello), poi le azioni
             Rectangle {
+                id: timerBox
                 visible: mini.live
                 implicitWidth: timeRow.implicitWidth + 20; implicitHeight: 36; radius: 18
-                color: tma.containsMouse ? Theme.cardHi : "transparent"
+                color: drag.overTimer && !drag.moved ? Theme.cardHi : "transparent"
                 Row {
                     id: timeRow
                     anchors.centerIn: parent
@@ -144,7 +180,6 @@ PanelWindow {
                         color: Theme.fg; font.pixelSize: 17; font.weight: Font.DemiBold
                     }
                 }
-                MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: mini.expand() }
             }
             Round { visible: mini.live; icon: "star"; onClicked: mini.run(["mark"], "select") }
             Round { visible: mini.live; icon: "open_in_full"; label: "Apri"; onClicked: mini.expand() }
