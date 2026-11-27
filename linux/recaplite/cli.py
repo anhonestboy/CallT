@@ -7,7 +7,9 @@
   recap-lite mark ["nota"]            segna il momento (⭐)
   recap-lite note "testo"             aggiunge una nota tua
   recap-lite ask "domanda"            chiede qualcosa sulla call (risposta nel pannello)
-  recap-lite status [--waybar]        stato, anche in formato modulo waybar
+  recap-lite status [--waybar|--json] stato, anche per waybar o per il menu
+  recap-lite menu                     apre il menu flottante (clic sulla voce in waybar)
+  recap-lite recent [--json]          ultime call
   recap-lite check                    controlla che tutto il necessario ci sia
 
 Collaudo senza call: recap-lite start --replay altri.wav [io.wav] [--speed 2]
@@ -28,7 +30,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from .config import PORT, RUNTIME_DIR, STATE_FILE, Config
+from .config import CONFIG_FILE, PORT, RUNTIME_DIR, STATE_FILE, Config
 
 URL = f"http://127.0.0.1:{PORT}"
 PANEL_PID = RUNTIME_DIR / "recap-lite-panel.pid"
@@ -173,17 +175,29 @@ def cmd_panel(args, cfg: Config) -> int:
     return 0
 
 
+ICON = "\U000F147D"  # onda (Nerd Font, md-waveform)
+
+
 def cmd_status(args, cfg: Config) -> int:
     state = _state()
+    if args.json:
+        out = {k: v for k, v in (state or {"phase": "idle"}).items() if k not in ("lines", "notes", "chat")}
+        out["outputDir"] = str(Path(cfg.output_dir).expanduser())
+        out["configFile"] = str(CONFIG_FILE)
+        out.setdefault("model", cfg.whisper_model)
+        print(json.dumps(out, ensure_ascii=False))
+        return 0
     if args.waybar:
-        if not state or state["phase"] in ("done",):
-            print(json.dumps({"text": "", "class": "idle"}))
+        # Sempre visibile, come l'icona di Recap nella barra dei menu del Mac.
+        if not state or state["phase"] == "done":
+            print(json.dumps({"text": ICON, "class": "idle", "tooltip": "Recap — clic per il menu"},
+                             ensure_ascii=False))
         else:
             minutes, seconds = divmod(int(state["elapsed"]), 60)
-            text = {"live": f"● {minutes:02d}:{seconds:02d}", "finishing": "◌ note…",
-                    "starting": "◌", "failed": "⚠"}.get(state["phase"], "")
+            text = {"live": f"{ICON} ● {minutes:02d}:{seconds:02d}", "finishing": f"{ICON} note…",
+                    "starting": f"{ICON} …", "failed": f"{ICON} ⚠"}.get(state["phase"], ICON)
             tooltip = f"Recap — {state['name']}\n{state['lineCount']} frasi · {state['engine']}"
-            print(json.dumps({"text": text, "class": state["phase"], "tooltip": tooltip}))
+            print(json.dumps({"text": text, "class": state["phase"], "tooltip": tooltip}, ensure_ascii=False))
         return 0
     if not state:
         print("Nessuna sessione attiva.")
@@ -194,6 +208,55 @@ def cmd_status(args, cfg: Config) -> int:
     if state.get("error"):
         print(f"  ⚠ {state['error']}")
     return 0
+
+
+def cmd_stop_async(args, cfg: Config) -> int:
+    """Ferma senza aspettare: il demone finisce da solo e manda una notifica."""
+    return 0 if _post("stop") is not None else 1
+
+
+def cmd_recent(args, cfg: Config) -> int:
+    """Le ultime call (cartelle con le note), dalla più recente."""
+    root = Path(cfg.output_dir).expanduser()
+    items = []
+    if root.is_dir():
+        for folder in root.iterdir():
+            if not folder.is_dir():
+                continue
+            notes = next(iter(sorted(folder.glob("*_notes.md"))), None)
+            if not notes:
+                continue
+            items.append({"name": folder.name, "folder": str(folder), "notes": str(notes),
+                          "mtime": notes.stat().st_mtime})
+    items.sort(key=lambda item: item["mtime"], reverse=True)
+    items = items[:args.limit]
+    if args.json:
+        print(json.dumps(items, ensure_ascii=False))
+    else:
+        for item in items:
+            print(f"{time.strftime('%d/%m %H:%M', time.localtime(item['mtime']))}  {item['name']}")
+    return 0
+
+
+def cmd_menu(args, cfg: Config) -> int:
+    """Apre/chiude il menu Quickshell sotto il puntatore (per il clic sulla voce in waybar)."""
+    x, y = "-1", "-1"
+    try:
+        pos = subprocess.run(["hyprctl", "cursorpos"], capture_output=True, text=True, timeout=2).stdout
+        x, y = [part.strip() for part in pos.split(",")[:2]]
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        pass
+    call = ["qs", "ipc", "-c", "recap", "call", "menu", "toggleAt", x, y]
+    if subprocess.run(call, capture_output=True).returncode == 0:
+        return 0
+    subprocess.Popen(["qs", "-c", "recap", "-d"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+    for _ in range(20):
+        time.sleep(0.25)
+        if subprocess.run(call, capture_output=True).returncode == 0:
+            return 0
+    print("Quickshell non risponde: prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
+    return 1
 
 
 def cmd_simple(action: str):
@@ -284,6 +347,12 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("panel")
     status = sub.add_parser("status")
     status.add_argument("--waybar", action="store_true")
+    status.add_argument("--json", action="store_true")
+    recent = sub.add_parser("recent")
+    recent.add_argument("--json", action="store_true")
+    recent.add_argument("--limit", type=int, default=5)
+    sub.add_parser("stop-async")
+    sub.add_parser("menu")
     sub.add_parser("check")
     for name in ("mark", "note", "ask"):
         p = sub.add_parser(name)
@@ -294,7 +363,8 @@ def main(argv: list[str] | None = None) -> int:
     cfg.save_default()
     handlers = {
         "start": cmd_start, "serve": cmd_serve, "stop": cmd_stop, "toggle": cmd_toggle,
-        "panel": cmd_panel, "status": cmd_status, "check": cmd_check,
+        "panel": cmd_panel, "status": cmd_status, "check": cmd_check, "recent": cmd_recent,
+        "stop-async": cmd_stop_async, "menu": cmd_menu,
         "mark": cmd_simple("mark"), "note": cmd_simple("note"), "ask": cmd_simple("ask"),
     }
     return handlers[args.command](args, cfg)

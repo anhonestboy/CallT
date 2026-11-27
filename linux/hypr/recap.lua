@@ -9,6 +9,9 @@ bind("SUPER + ALT + C", "recap-lite toggle", "Call: Avvia/ferma Recap (note dell
 bind("SUPER + ALT + N", "recap-lite panel",  "Call: Mostra/nascondi il pannello di Recap")
 bind("SUPER + ALT + M", "recap-lite mark",   "Call: Segna questo momento (⭐)")
 
+-- Menu flottante (Quickshell) precaricato all'avvio: il clic sulla voce in waybar lo apre subito.
+pcall(hl.on, "hyprland.start", function() hl.exec_cmd("qs -c recap -d") end)
+
 -- Il pannello (finestra "Recap Lite" di Chromium): flottante, su tutti i workspace, vetro.
 local ok = pcall(hl.window_rule, {
     name    = "recap-lite-panel",

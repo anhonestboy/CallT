@@ -26,7 +26,11 @@ Il modello whisper (`small` di default) viene scaricato al primo uso, se non c'�
 recap-lite check      # controlla che ci sia tutto
 ```
 
-Con `--hypr` copia `hypr/recap.lua` in `~/.config/hypr/` e aggiunge `pcall(require, "recap")` a `hyprland.lua` (con backup):
+Con `--hypr`:
+- copia `hypr/recap.lua` in `~/.config/hypr/` e aggiunge `pcall(require, "recap")` a `hyprland.lua` (con backup);
+- installa il **menu flottante** (Quickshell, `~/.config/quickshell/recap`) e aggiunge la **voce nella barra** di waybar (`custom/recap`, primo dei moduli di destra; backup `config.jsonc.bak-recap`).
+
+Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante la call diventa rossa con il timer. **Clic** apre il menu sotto l'icona (avvia/ferma, pannello, segna il momento, call recenti, cartella, impostazioni). Si chiude cliccando fuori o con Esc. **Clic destro** avvia o ferma, **clic centrale** mostra il pannello. Colori dallo sfondo (matugen) e suoni degli extras, come il resto del desktop.
 
 | Scorciatoia | Azione |
 |---|---|
@@ -36,17 +40,7 @@ Con `--hypr` copia `hypr/recap.lua` in `~/.config/hypr/` e aggiunge `pcall(requi
 
 Il pannello è flottante, fissato su tutti i workspace e leggermente trasparente.
 
-Modulo per waybar (facoltativo), in `config.jsonc`:
-
-```jsonc
-"custom/recap": {
-    "exec": "recap-lite status --waybar",
-    "return-type": "json",
-    "interval": 1,
-    "on-click": "recap-lite panel",
-    "on-click-right": "recap-lite toggle"
-}
-```
+Se usi un'altra barra, la voce si aggiunge a mano (`waybar_patch.py` mostra il modulo): `recap-lite status --waybar` per il testo, `recap-lite menu` al clic.
 
 ## Uso
 

@@ -28,8 +28,17 @@ if [ "${1:-}" = "--hypr" ]; then
         cp "$conf/hyprland.lua" "$conf/hyprland.lua.bak-recap"
         printf '\n-- Recap Lite (note delle call): scorciatoie Super+Alt+C/N/M e pannello\npcall(require, "recap")\n' >> "$conf/hyprland.lua"
     fi
+    # Menu flottante (Quickshell) e voce nella barra (waybar)
+    mkdir -p ~/.config/quickshell
+    rm -rf ~/.config/quickshell/recap
+    cp -R "$here/quickshell/recap" ~/.config/quickshell/recap
+    python3 "$here/waybar_patch.py" ~/.config/waybar || true
     command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true
+    pkill -f 'qs -c recap' 2>/dev/null || true
+    setsid qs -c recap -d >/dev/null 2>&1 < /dev/null &
+    pkill -SIGUSR2 waybar 2>/dev/null || true   # ricarica la barra
     echo "Hyprland: Super+Alt+C avvia/ferma · Super+Alt+N pannello · Super+Alt+M segna il momento"
+    echo "Barra: clic sull'icona dell'onda per il menu di Recap"
 fi
 
 echo
