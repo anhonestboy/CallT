@@ -3,7 +3,7 @@
   recap-lite start [--title "Nome"]   avvia una sessione e apre il pannello
   recap-lite stop                     ferma, scrive le note finali e stampa dove sono
   recap-lite toggle                   avvia o ferma (per una scorciatoia)
-  recap-lite panel                    mostra/nasconde il pannello (la sessione continua)
+  recap-lite panel [--show|--hide|--mini]  pannello: mostra/nasconde o riduce a pillola
   recap-lite mark ["nota"]            segna il momento (⭐)
   recap-lite note "testo"             aggiunge una nota tua
   recap-lite ask "domanda"            chiede qualcosa sulla call (risposta nel pannello)
@@ -30,10 +30,10 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from .config import CONFIG_FILE, PORT, RUNTIME_DIR, STATE_FILE, Config
+from .config import CONFIG_FILE, PORT, STATE_FILE, Config
 
-URL = f"http://127.0.0.1:{PORT}"
-PANEL_PID = RUNTIME_DIR / "recap-lite-panel.pid"
+from .panel import URL, close_panel, minimize, open_panel, qs_call
+from . import panel as panel_mod
 LOG_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "recap-lite"
 
 
@@ -59,42 +59,6 @@ def _post(action: str, **body) -> dict | None:
         return _request(f"/api/{action}", body)
     except (urllib.error.URLError, OSError, ValueError):
         return None
-
-
-# ── pannello ────────────────────────────────────────────────
-
-def _panel_alive() -> int | None:
-    try:
-        pid = int(PANEL_PID.read_text())
-        os.kill(pid, 0)
-        return pid
-    except (OSError, ValueError):
-        return None
-
-
-def open_panel(cfg: Config) -> None:
-    if _panel_alive():
-        return
-    profile = Path.home() / ".local/share/recap-lite/panel-profile"
-    profile.mkdir(parents=True, exist_ok=True)
-    command = [part.format(url=URL, profile=profile) for part in cfg.panel_command]
-    if not shutil.which(command[0]):
-        command = ["xdg-open", URL]
-    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                               start_new_session=True)
-    PANEL_PID.write_text(str(process.pid))
-
-
-def close_panel() -> bool:
-    pid = _panel_alive()
-    if not pid:
-        return False
-    try:
-        os.killpg(pid, signal.SIGTERM)
-    except OSError:
-        os.kill(pid, signal.SIGTERM)
-    PANEL_PID.unlink(missing_ok=True)
-    return True
 
 
 # ── comandi ─────────────────────────────────────────────────
@@ -166,7 +130,13 @@ def cmd_toggle(args, cfg: Config) -> int:
 
 
 def cmd_panel(args, cfg: Config) -> int:
-    if close_panel():
+    if args.hide:
+        panel_mod.hide()
+        return 0
+    if args.mini:
+        minimize()
+        return 0
+    if not args.show and close_panel():
         return 0
     if not _state():
         print("Nessuna sessione attiva: recap-lite start")
@@ -244,17 +214,11 @@ def cmd_menu(args, cfg: Config) -> int:
     try:
         pos = subprocess.run(["hyprctl", "cursorpos"], capture_output=True, text=True, timeout=2).stdout
         x, y = [part.strip() for part in pos.split(",")[:2]]
+        int(x), int(y)
     except (OSError, ValueError, subprocess.TimeoutExpired):
-        pass
-    call = ["qs", "ipc", "-c", "recap", "call", "menu", "toggleAt", x, y]
-    if subprocess.run(call, capture_output=True).returncode == 0:
+        x, y = "-1", "-1"
+    if qs_call("menu", "toggleAt", x, y):
         return 0
-    subprocess.Popen(["qs", "-c", "recap", "-d"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                     start_new_session=True)
-    for _ in range(20):
-        time.sleep(0.25)
-        if subprocess.run(call, capture_output=True).returncode == 0:
-            return 0
     print("Quickshell non risponde: prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
     return 1
 
@@ -344,7 +308,11 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--no-panel", action="store_true")
     sub.add_parser("stop")
     sub.add_parser("toggle")
-    sub.add_parser("panel")
+    panel_parser = sub.add_parser("panel")
+    group = panel_parser.add_mutually_exclusive_group()
+    group.add_argument("--show", action="store_true", help="apre (o porta in primo piano)")
+    group.add_argument("--hide", action="store_true", help="nasconde; si riapre dalla barra o con Super+Alt+N")
+    group.add_argument("--mini", action="store_true", help="riduce alla pillola sotto la barra")
     status = sub.add_parser("status")
     status.add_argument("--waybar", action="store_true")
     status.add_argument("--json", action="store_true")

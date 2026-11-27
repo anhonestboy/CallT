@@ -36,9 +36,12 @@ Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante l
 |---|---|
 | Super+Alt+C | avvia / ferma la sessione |
 | Super+Alt+N | mostra / nasconde il pannello (la sessione continua) |
+| Super+Alt+B | riduce il pannello a pillola sotto la barra |
 | Super+Alt+M | segna il momento ⭐ |
 
-Il pannello è flottante, fissato su tutti i workspace e leggermente trasparente.
+Il pannello si apre in alto a destra, flottante, fissato su tutti i workspace e leggermente trasparente. Nell'intestazione, come sul Mac:
+- **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, "espandi" e stop. A call conclusa la pillola offre le note e poi si chiude.
+- **Nascondi** lo chiude e basta: la call continua, lo riapri dal menu nella barra, con il clic centrale sull'icona o con Super+Alt+N.
 
 Se usi un'altra barra, la voce si aggiunge a mano (`waybar_patch.py` mostra il modulo): `recap-lite status --waybar` per il testo, `recap-lite menu` al clic.
 

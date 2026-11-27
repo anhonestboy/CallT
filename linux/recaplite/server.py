@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from . import panel
 from .session import Session
 
 WEB = Path(__file__).parent / "web"
@@ -98,6 +99,10 @@ def serve(session: Session, port: int, on_quit) -> ThreadingHTTPServer:
                 if target.exists():
                     subprocess.Popen(["xdg-open", str(target)], stdout=subprocess.DEVNULL,
                                      stderr=subprocess.DEVNULL)
+            elif action == "hide":
+                threading.Thread(target=panel.hide, daemon=True).start()
+            elif action == "minimize":
+                threading.Thread(target=panel.minimize, daemon=True).start()
             elif action == "quit":
                 threading.Thread(target=on_quit, daemon=True).start()
             else:
