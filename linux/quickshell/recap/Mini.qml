@@ -5,11 +5,22 @@ import Quickshell.Io
 import Quickshell.Wayland
 
 // Pannello ridotto: pillola sotto la barra, in alto a destra (come la barretta compatta del Mac).
-// Clic sul timer o su "Apri" riapre il pannello; ⭐ segna; stop chiede conferma. Si mostra con "Riduci" nel pannello o
-// `qs ipc -c recap call mini show`; sparisce da sola a call conclusa, dopo aver offerto le note.
+// Clic sul timer o su "Apri" riapre il pannello; ⭐ segna; stop chiede conferma.
+// Si mostra con `qs ipc -c recap call mini show` (avvio della call, "Riduci" nel pannello) e
+// sparisce da sola a call conclusa, dopo aver offerto le note.
+//
+// Costruita come l'isola di Latto, che su Hyprland funziona: una finestra per monitor, sempre
+// mappata e di misura fissa (larga quanto lo schermo, alta quanto basta), sul livello Overlay;
+// la maschera d'input copre solo la pillola, e quando è nascosta i clic passano alla barra e
+// alle finestre sotto. Niente finestre che compaiono o cambiano misura.
 PanelWindow {
     id: mini
-    property bool shown: false
+    required property var modelData
+    screen: modelData
+
+    // Visibile solo sul monitor che aveva il fuoco quando è stata chiamata.
+    readonly property bool shown: MiniState.shown
+        && (MiniState.screenName === "" || Quickshell.screens.length === 1 || MiniState.screenName === modelData.name)
     property real t: 0
     Behavior on t { NumberAnimation { duration: mini.shown ? 240 : 150; easing.type: Easing.OutCubic } }
     onShownChanged: {
@@ -17,17 +28,17 @@ PanelWindow {
         confirmStop = false
         if (shown) { st = ({ phase: "" }); poll() }  // si mostra quando arriva lo stato vero
     }
-    visible: shown || t > 0.01
+    function hide() { MiniState.shown = false }
 
+    readonly property int barHeight: 36
     color: "transparent"
-    anchors { top: true; right: true }
-    margins { top: 42; right: 12 }
-    implicitWidth: pill.implicitWidth
-    implicitHeight: pill.implicitHeight
+    anchors { top: true; left: true; right: true }
+    implicitHeight: barHeight + 6 + 52 + 12
     exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "recap-mini"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    mask: Region { item: mini.shown ? pill : null }
 
     readonly property string bin: Quickshell.env("HOME") + "/.local/bin/recap-lite"
     property var st: ({ phase: "" })
@@ -42,7 +53,7 @@ PanelWindow {
     function poll() { if (!statusProc.running) statusProc.running = true }
     Timer { interval: 1000; running: mini.shown; repeat: true; onTriggered: { mini.now = Date.now() / 1000; mini.poll() } }
     // Nessuna sessione: la pillola non serve.
-    onStChanged: if (shown && (st.phase === "idle" || st.phase === "failed")) shown = false
+    onStChanged: if (shown && (st.phase === "idle" || st.phase === "failed")) hide()
 
     function run(args, sound) {
         Quickshell.execDetached([mini.bin].concat(args))
@@ -88,7 +99,7 @@ PanelWindow {
         MouseArea { id: rma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: r.clicked() }
     }
 
-    function expand() { mini.run(["panel", "--show"]); mini.shown = false }
+    function expand() { mini.run(["panel", "--show"]); mini.hide() }
 
     // Il primo clic su stop chiede conferma: un clic sbagliato non chiude la call.
     property bool confirmStop: false
@@ -96,8 +107,11 @@ PanelWindow {
 
     Rectangle {
         id: pill
-        implicitWidth: row.implicitWidth + 16
-        implicitHeight: 52
+        anchors { right: parent.right; rightMargin: 12 }
+        y: mini.barHeight + 6 - (1 - mini.t) * 6
+        width: row.implicitWidth + 16
+        height: 52
+        transformOrigin: Item.TopRight
         radius: 26
         color: Theme.surface
         border.color: Theme.line
@@ -156,8 +170,8 @@ PanelWindow {
                 Layout.leftMargin: 10; Layout.rightMargin: 6
             }
             Round { visible: mini.st.phase === "done" && !!mini.st.notesFile; icon: "description"; label: "Apri"
-                    onClicked: { Quickshell.execDetached(["xdg-open", mini.st.notesFile]); mini.shown = false } }
-            Round { visible: !mini.live; icon: "close"; onClicked: mini.shown = false }
+                    onClicked: { Quickshell.execDetached(["xdg-open", mini.st.notesFile]); mini.hide() } }
+            Round { visible: !mini.live; icon: "close"; onClicked: mini.hide() }
         }
     }
 }

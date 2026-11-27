@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import os
 import shutil
 import signal
@@ -270,6 +271,19 @@ def cmd_check(args, cfg: Config) -> int:
     line(engine.available or cfg.engine == "off", "note AI", engine.label)
     line(bool(shutil.which(cfg.panel_command[0])), "pannello", cfg.panel_command[0])
     line(bool(shutil.which("ffmpeg")), "ffmpeg (facoltativo)", "audio salvato come .m4a invece che WAV")
+    if shutil.which("qs"):
+        # Menu e pillola: la config Quickshell `recap` deve essere in esecuzione e avere i due target IPC.
+        try:
+            targets = subprocess.run(["qs", "ipc", "-c", "recap", "show"], capture_output=True,
+                                     text=True, timeout=5)
+            out, code = targets.stdout + targets.stderr, targets.returncode
+        except subprocess.TimeoutExpired:
+            out, code = "qs ipc non risponde", 1
+        good = code == 0 and all(re.search(rf"\b{name}\b", out) for name in ("menu", "mini"))
+        detail = "menu e pillola pronti" if good else (out.strip().splitlines() or ["non avviata"])[-1]
+        line(good, "Quickshell (menu, pillola)", detail + ("" if good else " — prova `qs -c recap`"))
+    else:
+        line(False, "Quickshell (menu, pillola)", "comando qs non trovato")
     print(f"Output: {Path(cfg.output_dir).expanduser()}")
     return 0 if ok else 1
 
