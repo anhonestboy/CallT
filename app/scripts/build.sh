@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 APP_NAME=Recap
 BUNDLE_ID=com.werootbox.recap
-VERSION=1.4.0
+VERSION=1.4.1
 BUILD_DIR=build.noindex   # .noindex: Spotlight/Launchpad ignorano le build
 APP="$BUILD_DIR/$APP_NAME.app"
 SDK=$(xcrun --show-sdk-path --sdk macosx)
@@ -32,12 +32,13 @@ mkdir -p "$APP/Contents/Resources/en.lproj"   # base: le chiavi sono in inglese
 # ── Helper di diarizzazione (SPM, FluidAudio) ────────
 echo "→ Build diarizer…"
 if [ "$UNIVERSAL" = "--universal" ]; then
-  (cd tools/diarizer && swift build -c release --arch arm64 --arch x86_64 > /dev/null)
-  DIAR_BIN=tools/diarizer/.build/apple/Products/Release/recap-diarizer
+  DIAR_ARGS=(-c release --arch arm64 --arch x86_64)
 else
-  (cd tools/diarizer && swift build -c release > /dev/null)
-  DIAR_BIN=tools/diarizer/.build/release/recap-diarizer
+  DIAR_ARGS=(-c release)
 fi
+(cd tools/diarizer && swift build "${DIAR_ARGS[@]}" > /dev/null)
+# Il percorso cambia tra versioni di SwiftPM (.build/apple/… o .build/out/…): lo chiede a SwiftPM.
+DIAR_BIN="$(cd tools/diarizer && swift build "${DIAR_ARGS[@]}" --show-bin-path)/recap-diarizer"
 cp "$DIAR_BIN" "$APP/Contents/Resources/recap-diarizer"
 
 # ── Sorgenti ─────────────────────────────────────────

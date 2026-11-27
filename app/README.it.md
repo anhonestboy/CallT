@@ -63,7 +63,11 @@ Gli screenshot sono renderizzati direttamente dalla UI reale: `Recap --render-sc
 
 ## Installazione
 
-Scarica `Recap.dmg` dalle [release](https://github.com/anhonestboy/Recap/releases) e trascina Recap in Applicazioni.
+Scarica `Recap.dmg` dalle [release](https://github.com/anhonestboy/Recap/releases) e trascina Recap in Applicazioni — oppure usa Homebrew:
+
+```sh
+brew install --cask anhonestboy/tap/recap
+```
  Al primo avvio macOS blocca le app non firmate: **Impostazioni di Sistema → Privacy e Sicurezza → Apri comunque** (una sola volta). Per registrare le call verranno chiesti anche i permessi di Registrazione schermo/audio di sistema e Microfono.
 
 Oppure compila dai sorgenti:

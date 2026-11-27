@@ -63,7 +63,11 @@ Screenshots are rendered straight from the real UI: `Recap --render-screenshots 
 
 ## Install
 
-Download `Recap.dmg` from the [releases](https://github.com/anhonestboy/Recap/releases) and drag Recap to Applications.
+Download `Recap.dmg` from the [releases](https://github.com/anhonestboy/Recap/releases) and drag Recap to Applications — or use Homebrew:
+
+```sh
+brew install --cask anhonestboy/tap/recap
+```
  On first launch macOS blocks unsigned apps: open **System Settings → Privacy & Security → Open Anyway** (one time only). To record calls you will also be asked for Screen & System Audio Recording and Microphone permissions.
 
 Or build from source:

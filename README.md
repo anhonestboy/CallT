@@ -32,7 +32,7 @@ Recap still does what it always did: drop any recording into a watched folder an
 ## Get it
 
 - **Requirements:** macOS 26 (Tahoe) or later.
-- **Download:** `Recap.dmg` from [Releases](https://github.com/anhonestboy/Recap/releases) (versions up to 1.3.2 were published under the previous name, CallT).
+- **Download:** `Recap.dmg` from [Releases](https://github.com/anhonestboy/Recap/releases), or `brew install --cask anhonestboy/tap/recap` (versions up to 1.3.2 were published under the previous name, CallT).
 - **Build from source:** `app/scripts/build.sh` · DMG: `app/scripts/package.sh` (Xcode 26).
 
 Full documentation: [app/README.md](app/README.md) · [italiano](app/README.it.md)
