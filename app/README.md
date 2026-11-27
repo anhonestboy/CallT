@@ -6,6 +6,27 @@ A macOS menu bar app that records, transcribes and summarizes your calls — ent
 
 Drop a video or audio file into a watched folder (or hit **Record call**) and CallT automatically produces a transcript, organized Markdown notes, and an HEVC-compressed copy of the video.
 
+## Live session
+
+Start a session (**Start live session** or ⌥⌘R) when the call begins. CallT:
+
+- **transcribes while you talk**, keeping your voice ("Me", from the microphone) apart from everyone else ("Others", from system audio); on-device diarization tells the other participants apart at the end;
+- **captures the call window** (Zoom, Teams, Meet in the browser…, or the screen under the pointer) and **takes a screenshot by itself** whenever the shared screen changes — only screens with readable text (slides, documents, demos), with on-device OCR;
+- keeps a **rolling buffer** for **clips**: ⌃⌥C saves the last 30 s plus the next 10 s, no full video needed (optional);
+- **writes the notes as the call goes**, with Claude seeing both transcript and screenshots; a final pass (Opus) produces the complete document with the images placed where they matter;
+- shows a translucent **floating panel** (Liquid Glass): compact (timer and quick actions) or expanded (notes, transcript, captures, a chat to ask questions or add your own notes). Draggable, hidden with ⌃⌥N or from the menu, hidden automatically while you share your screen, and excluded from captures;
+- saves everything in one folder per call: `…_notes.md` (with `assets/` for images and clips), transcript, `session.json` and optionally the full recording.
+
+**AI engines**: *Claude — local account* uses the `claude` CLI already signed in to your plan (no API key); alternatively the Claude API, the notes engine (e.g. DeepSeek, text only: screenshots arrive as OCR), or no AI at all.
+
+Shortcuts: ⌥⌘R start/stop · ⌃⌥N panel · ⌃⌥S screenshot · ⌃⌥C clip · ⌃⌥M mark the moment.
+
+| Panel | Compact |
+|---|---|
+| ![Live panel](../docs/screenshots/live-panel.png) | ![Compact panel](../docs/screenshots/live-compact.png) |
+
+Testing without a call: `CallT --live-replay recording.mp4 [--speed 2] [--live-test-actions] [--quit-after-session]` replays a file as if it were a call in progress.
+
 ## Features
 
 - **Call recording** (ScreenCaptureKit): system audio from *any* call tool (Zoom, Meet, Teams…) plus your microphone — with screen video, or audio-only (the screen is never written to disk in audio-only mode).
@@ -75,10 +96,12 @@ Sources/
   ProcessedRegistry.swift   persistent registry of processed files
   ShortcutRunner.swift      `shortcuts` CLI integration
   Notifier.swift, LogStore.swift, Job.swift
-  Recording/                CallRecorder (ScreenCaptureKit) + audio-only writer
+  Live/                     live session: capture sources, streaming transcription, frame analyzer
+                            (screenshots + OCR), clip ring buffer, writers, AI engines, prompts
+  Recording/                MicCapture (AVCapture), hotkeys, window picker
   Notes/                    notes generator + engines (Apple, Claude, OpenAI-compatible)
   Transcription/            Transcript (+SRT), AppleTranscriber, WhisperTranscriber
-  UI/                       MenuContent, SettingsView
+  UI/                       PopoverView, LivePanel, MarkdownView, SettingsView
   Intents/                  "Transcribe video" App Intent + AppShortcutsProvider
 Resources/                  icon + localizations (en base, it)
 scripts/                    build.sh, package.sh, make_icon.swift

@@ -4,7 +4,12 @@ import SwiftUI
 struct CallTApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var state = AppState.shared
-    @StateObject private var recorder = CallRecorder.shared
+    @StateObject private var session = LiveSession.shared
+
+    private var isFinishing: Bool {
+        if case .finishing = session.phase { return true }
+        return false
+    }
 
     var body: some Scene {
         MenuBarExtra {
@@ -12,10 +17,10 @@ struct CallTApp: App {
                 .environmentObject(state)
         } label: {
             // Stesso glifo dell'icona app; varianti per registrazione/elaborazione.
-            Image(systemName: recorder.isRecording
+            Image(systemName: session.isActive
                 ? "record.circle"
-                : (state.currentJob == nil ? "waveform" : "waveform.badge.microphone"))
-                .symbolEffect(.pulse, isActive: recorder.isRecording || state.currentJob != nil)
+                : (state.currentJob == nil && !isFinishing ? "waveform" : "waveform.badge.microphone"))
+                .symbolEffect(.pulse, isActive: session.isActive || isFinishing || state.currentJob != nil)
         }
         .menuBarExtraStyle(.window)
 
@@ -45,18 +50,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Flag di collaudo: registra qualche secondo e ferma da solo.
         if CommandLine.arguments.contains("--test-record-audio") {
             Task { @MainActor in
-                await CallRecorder.shared.start(mode: .audioOnly)
-                try? await Task.sleep(nanoseconds: 10_000_000_000)
-                await CallRecorder.shared.stop()
+                await LiveSession.shared.start(mode: .audioOnly)
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+                await LiveSession.shared.stop()
             }
         }
         if CommandLine.arguments.contains("--test-record-video") {
             Task { @MainActor in
-                await CallRecorder.shared.start(mode: .videoAudio)
-                try? await Task.sleep(nanoseconds: 10_000_000_000)
-                await CallRecorder.shared.stop()
+                await LiveSession.shared.start(mode: .video)
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+                await LiveSession.shared.stop()
             }
         }
+        // Collaudo della modalità live senza call: vedi LiveDebug.
+        LiveDebug.runIfRequested()
     }
 
     func applicationWillTerminate(_ notification: Notification) {

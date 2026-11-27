@@ -8,6 +8,8 @@ struct SettingsView: View {
         TabView {
             GeneralTab()
                 .tabItem { Label("General", systemImage: "gearshape") }
+            LiveTab()
+                .tabItem { Label("Live", systemImage: "record.circle") }
             ProcessingTab()
                 .tabItem { Label("Processing", systemImage: "waveform") }
             NotesTab()
@@ -156,6 +158,138 @@ struct GeneralTab: View {
     }
 }
 
+// MARK: - Live
+
+struct LiveTab: View {
+    @AppStorage(SettingsKey.liveCaptureTarget) private var target = CaptureTargetChoice.auto.rawValue
+    @AppStorage(SettingsKey.liveAutoShots) private var autoShots = true
+    @AppStorage(SettingsKey.liveShotSensitivity) private var sensitivity = FrameAnalyzer.Sensitivity.medium.rawValue
+    @AppStorage(SettingsKey.liveClipBefore) private var clipBefore = 30
+    @AppStorage(SettingsKey.liveClipAfter) private var clipAfter = 10
+    @AppStorage(SettingsKey.liveKeepRecording) private var keepRecording = "audio"
+    @AppStorage(SettingsKey.liveHideOnShare) private var hideOnShare = true
+    @AppStorage(SettingsKey.liveShowPanel) private var showPanel = true
+    @AppStorage(SettingsKey.liveEngine) private var engine = "claude-cli"
+    @AppStorage(SettingsKey.liveModel) private var liveModel = "sonnet"
+    @AppStorage(SettingsKey.liveFinalModel) private var finalModel = "opus"
+    @AppStorage(SettingsKey.liveInterval) private var interval = 45
+    @AppStorage(SettingsKey.liveDiarize) private var diarize = true
+
+    var body: some View {
+        Form {
+            Section {
+                Picker("Engine", selection: $engine) {
+                    Text("Claude — local account (Claude Code)").tag("claude-cli")
+                    Text("Claude API (key in Settings → Notes)").tag("claude")
+                    Text("The notes engine (text only)").tag("notes")
+                    Text("No AI (transcript and captures only)").tag("off")
+                }
+                if engine == "claude-cli" { ClaudeCLIStatus() }
+                if engine == "notes" {
+                    Text("Uses the engine chosen in the Notes tab (e.g. DeepSeek, Apple). These models do not see images: screenshots reach them as OCR text only.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                if engine == "claude-cli" || engine == "claude" {
+                    Picker("Model during the call", selection: $liveModel) {
+                        Text("Haiku (fastest)").tag("haiku")
+                        Text("Sonnet (recommended)").tag("sonnet")
+                        Text("Opus").tag("opus")
+                    }
+                    Picker("Model for final notes and questions", selection: $finalModel) {
+                        Text("Sonnet").tag("sonnet")
+                        Text("Opus (best)").tag("opus")
+                    }
+                }
+                Picker("Update the notes every", selection: $interval) {
+                    Text("30 s").tag(30)
+                    Text("45 s").tag(45)
+                    Text("1 min").tag(60)
+                    Text("2 min").tag(120)
+                }
+            } header: {
+                Text("AI during the call")
+            } footer: {
+                Text("The transcript, your notes and the screenshots are sent to the chosen engine. Transcription and OCR stay on this Mac.")
+            }
+
+            Section {
+                Picker("What to capture", selection: $target) {
+                    ForEach(CaptureTargetChoice.allCases) { Text($0.label).tag($0.rawValue) }
+                }
+                Toggle("Automatic screenshots when the screen changes", isOn: $autoShots)
+                Picker("Sensitivity", selection: $sensitivity) {
+                    ForEach(FrameAnalyzer.Sensitivity.allCases) { Text($0.label).tag($0.rawValue) }
+                }
+                .disabled(!autoShots)
+                Stepper(value: $clipBefore, in: 10...120, step: 5) {
+                    LabeledContent(String(localized: "Clip: seconds before"), value: "\(clipBefore) s")
+                }
+                Stepper(value: $clipAfter, in: 0...60, step: 5) {
+                    LabeledContent(String(localized: "Clip: seconds after"), value: "\(clipAfter) s")
+                }
+                Picker("Also keep the full recording", selection: $keepRecording) {
+                    Text("No").tag("none")
+                    Text("Audio only (recommended)").tag("audio")
+                    Text("Audio and video").tag("video")
+                }
+            } header: {
+                Text("Screen, screenshots and clips")
+            } footer: {
+                Text("Automatic screenshots keep only screens with readable text (slides, documents, demos), not webcam faces. Clips are cut from a rolling buffer: they include the seconds before you press the button.")
+            }
+
+            Section {
+                Toggle("Open the live panel when the session starts", isOn: $showPanel)
+                Toggle("Hide the panel while I share my screen", isOn: $hideOnShare)
+                Toggle("Tell the other participants apart at the end (diarization)", isOn: $diarize)
+            } header: {
+                Text("Panel")
+            } footer: {
+                Text("Screen sharing is detected from the call apps' sharing bars (Meet, Zoom, Teams). To be safe, share a single window instead of the whole screen.")
+            }
+
+            Section("Shortcuts") {
+                ForEach(HotKeyManager.Action.allCases, id: \.rawValue) { action in
+                    LabeledContent(action.label) {
+                        Text(verbatim: action.display).font(.body.monospaced()).foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// Stato della CLI `claude` (login locale, nessuna chiave API).
+struct ClaudeCLIStatus: View {
+    @AppStorage(SettingsKey.claudeCLIPath) private var customPath = ""
+    @State private var version: String?
+
+    var body: some View {
+        let found = ClaudeCLI.locate()
+        VStack(alignment: .leading, spacing: 6) {
+            if let found {
+                Label(String(localized: "Found: \((found as NSString).abbreviatingWithTildeInPath)") + (version.map { " (\($0))" } ?? ""),
+                      systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("Uses the account you are signed in with in Claude Code (your Claude plan): no API key needed.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            } else {
+                Label("Claude Code not found", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text("Install Claude Code and sign in once from the Terminal (claude), or set its path below.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            TextField("Path (optional)", text: $customPath, prompt: Text(verbatim: "~/.local/bin/claude"))
+        }
+        .task(id: found) {
+            guard let found else { version = nil; return }
+            let result = try? await ProcessRunner.run(found, ["--version"], timeout: 10)
+            version = result?.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+    }
+}
+
 // MARK: - Processing
 
 struct ProcessingTab: View {
@@ -210,7 +344,7 @@ struct ProcessingTab: View {
                         Text(verbatim: mic.name).tag(mic.id)
                     }
                 }
-                Text("Global shortcut to start/stop recording: ⌥⌘R")
+                Text("The microphone is always recorded on its own track, separately from the call app, so echo cancellation in the call keeps working.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section {
@@ -249,6 +383,7 @@ struct NotesTab: View {
     private static var engines: [(id: String, label: String)] {
         [
             ("apple", String(localized: "Apple Intelligence (local, free)")),
+            ("claude-cli", String(localized: "Claude — local account (Claude Code)")),
             ("claude", String(localized: "Claude API")),
             ("openrouter", "OpenRouter"),
             ("deepseek", "DeepSeek"),
@@ -258,7 +393,7 @@ struct NotesTab: View {
     }
 
     private var needsKey: Bool {
-        if engine == "apple" { return false }
+        if engine == "apple" || engine == "claude-cli" { return false }
         if engine == "claude" { return true }
         return OpenAICompatEngine.provider(engine)?.needsKey ?? true
     }
@@ -286,7 +421,17 @@ struct NotesTab: View {
                     Text(AppleNotesEngine.availabilityDescription())
                         .font(.footnote).foregroundStyle(.secondary)
                 } else {
-                    if engine == "claude" {
+                    if engine == "claude-cli" {
+                        Picker("Model", selection: $model) {
+                            Text(verbatim: "Opus").tag("opus")
+                            Text(verbatim: "Sonnet").tag("sonnet")
+                            Text(verbatim: "Haiku").tag("haiku")
+                        }
+                        .onChange(of: model) { _, value in
+                            AppSettings.setNotesModel(value, for: engine)
+                        }
+                        ClaudeCLIStatus()
+                    } else if engine == "claude" {
                         Picker("Model", selection: $model) {
                             ForEach(ClaudeNotesEngine.models, id: \.0) { id, label in
                                 Text(label).tag(id)

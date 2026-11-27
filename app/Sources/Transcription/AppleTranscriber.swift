@@ -112,7 +112,7 @@ struct AppleTranscriber: TranscriptionEngine {
     }
 
     /// Scarica il modello per la lingua se non è già installato (una tantum).
-    private static func ensureModelInstalled(
+    static func ensureModelInstalled(
         for transcriber: SpeechTranscriber, locale: Locale
     ) async throws {
         let installed = await Set(SpeechTranscriber.installedLocales.map { $0.identifier(.bcp47) })

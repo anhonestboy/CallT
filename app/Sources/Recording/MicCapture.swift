@@ -69,7 +69,10 @@ final class MicCapture: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, 
         session.beginConfiguration()
         for input in session.inputs { session.removeInput(input) }
 
-        guard let device = AVCaptureDevice.default(for: .audio),
+        // Microfono scelto nelle impostazioni, altrimenti quello predefinito.
+        let chosenID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
+        let chosen = chosenID.isEmpty ? nil : AVCaptureDevice(uniqueID: chosenID)
+        guard let device = chosen ?? AVCaptureDevice.default(for: .audio),
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else {
             session.commitConfiguration()

@@ -33,6 +33,8 @@ enum ScreenshotRenderer {
                    name: "settings-processing.png", into: dir, settle: 1.0)
         await snap(NotesTab().frame(width: 580),
                    name: "settings-notes.png", into: dir, settle: 1.0)
+        await snap(LiveTab().frame(width: 580),
+                   name: "settings-live.png", into: dir, settle: 1.5)
         await snap(AutomationTab().frame(width: 580),
                    name: "settings-automation.png", into: dir, settle: 3.0)
         state.startMonitoring()

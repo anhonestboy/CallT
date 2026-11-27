@@ -28,8 +28,28 @@ enum SettingsKey {
     static let notesDetail = "notesDetail"
     static let diarizeSpeakers = "diarizeSpeakers"
     static let notesTimestamps = "notesTimestamps"
-    /// "auto" | "always" | "never" — cattura del microfono via ScreenCaptureKit.
+    /// "always" | "never" — cattura del microfono (sempre via AVCapture).
     static let captureMic = "captureMic"
+
+    // Sessione live
+    static let liveCaptureTarget = "liveCaptureTarget"
+    static let liveAutoShots = "liveAutoShots"
+    static let liveShotSensitivity = "liveShotSensitivity"
+    static let liveClipBefore = "liveClipBefore"
+    static let liveClipAfter = "liveClipAfter"
+    /// "none" | "audio" | "video" — registrazione completa salvata con la sessione.
+    static let liveKeepRecording = "liveKeepRecording"
+    static let liveHideOnShare = "liveHideOnShare"
+    static let liveShowPanel = "liveShowPanel"
+    static let livePanelExpanded = "livePanelExpanded"
+    /// "claude-cli" | "claude" | "notes"
+    static let liveEngine = "liveEngine"
+    /// "haiku" | "sonnet" | "opus"
+    static let liveModel = "liveModel"
+    static let liveFinalModel = "liveFinalModel"
+    static let liveInterval = "liveInterval"
+    static let liveDiarize = "liveDiarize"
+    static let claudeCLIPath = "claudeCLIPath"
 }
 
 enum TranscriptionEngineKind: String, CaseIterable, Identifiable {
@@ -90,7 +110,23 @@ struct AppSettings {
             SettingsKey.diarizeSpeakers: true,
             SettingsKey.notesTimestamps: true,
             SettingsKey.captureMic: "always",
+            SettingsKey.liveCaptureTarget: CaptureTargetChoice.auto.rawValue,
+            SettingsKey.liveAutoShots: true,
+            SettingsKey.liveShotSensitivity: FrameAnalyzer.Sensitivity.medium.rawValue,
+            SettingsKey.liveClipBefore: 30,
+            SettingsKey.liveClipAfter: 10,
+            SettingsKey.liveKeepRecording: "audio",
+            SettingsKey.liveHideOnShare: true,
+            SettingsKey.liveShowPanel: true,
+            SettingsKey.livePanelExpanded: false,
+            SettingsKey.liveEngine: "claude-cli",
+            SettingsKey.liveModel: "sonnet",
+            SettingsKey.liveFinalModel: "opus",
+            SettingsKey.liveInterval: 45,
+            SettingsKey.liveDiarize: true,
+            SettingsKey.claudeCLIPath: "",
         ])
+        migrateModels()
     }
 
     static var watchFolder: URL {
@@ -129,13 +165,45 @@ struct AppSettings {
     /// "never" registra solo l'audio di sistema (diagnostica).
     static var captureMic: String { defaults.string(forKey: SettingsKey.captureMic) ?? "always" }
 
+    // Sessione live
+    static var liveCaptureTarget: CaptureTargetChoice {
+        CaptureTargetChoice(rawValue: defaults.string(forKey: SettingsKey.liveCaptureTarget) ?? "") ?? .auto
+    }
+    static var liveAutoShots: Bool { defaults.bool(forKey: SettingsKey.liveAutoShots) }
+    static var liveShotSensitivity: FrameAnalyzer.Sensitivity {
+        FrameAnalyzer.Sensitivity(rawValue: defaults.string(forKey: SettingsKey.liveShotSensitivity) ?? "") ?? .medium
+    }
+    static var liveClipBefore: Int { max(5, defaults.integer(forKey: SettingsKey.liveClipBefore)) }
+    static var liveClipAfter: Int { max(0, defaults.integer(forKey: SettingsKey.liveClipAfter)) }
+    static var liveKeepRecording: String { defaults.string(forKey: SettingsKey.liveKeepRecording) ?? "audio" }
+    static var liveHideOnShare: Bool { defaults.bool(forKey: SettingsKey.liveHideOnShare) }
+    static var liveShowPanel: Bool { defaults.bool(forKey: SettingsKey.liveShowPanel) }
+    static var livePanelExpanded: Bool { defaults.bool(forKey: SettingsKey.livePanelExpanded) }
+    static var liveEngine: String { defaults.string(forKey: SettingsKey.liveEngine) ?? "claude-cli" }
+    static var liveModel: String { defaults.string(forKey: SettingsKey.liveModel) ?? "sonnet" }
+    static var liveFinalModel: String { defaults.string(forKey: SettingsKey.liveFinalModel) ?? "opus" }
+    static var liveInterval: Int { defaults.integer(forKey: SettingsKey.liveInterval) }
+    static var liveDiarize: Bool { defaults.bool(forKey: SettingsKey.liveDiarize) }
+    static var claudeCLIPath: String { defaults.string(forKey: SettingsKey.claudeCLIPath) ?? "" }
+
     /// Modello per motore di note (chiave dedicata per motore, con default sensato).
     static func notesModel(for engine: String) -> String {
         if let stored = defaults.string(forKey: "notesModel-\(engine)"), !stored.isEmpty {
             return stored
         }
-        if engine == "claude" { return "claude-opus-4-8" }
+        if engine == "claude" { return "claude-opus-5-5" }
+        if engine == "claude-cli" { return "opus" }
         return OpenAICompatEngine.provider(engine)?.defaultModel ?? ""
+    }
+
+    /// I modelli Claude non più in elenco passano all'equivalente attuale.
+    private static func migrateModels() {
+        let key = "notesModel-claude"
+        guard let stored = defaults.string(forKey: key), !stored.isEmpty,
+              !ClaudeNotesEngine.models.contains(where: { $0.0 == stored }) else { return }
+        let replacement = stored.contains("haiku") ? "claude-haiku-5-5"
+            : stored.contains("sonnet") ? "claude-sonnet-5-5" : "claude-opus-5-5"
+        defaults.set(replacement, forKey: key)
     }
 
     static func setNotesModel(_ model: String, for engine: String) {
