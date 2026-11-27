@@ -26,7 +26,7 @@ PanelWindow {
     onShownChanged: {
         t = shown ? 1 : 0
         confirmStop = false
-        if (shown) { st = ({ phase: "" }); poll() }  // si mostra quando arriva lo stato vero
+        if (shown) { st = ({ phase: "" }); poll() }  // "Recap…" finché non arriva lo stato
     }
     function hide() { MiniState.shown = false }
 
@@ -115,7 +115,7 @@ PanelWindow {
         radius: 26
         color: Theme.surface
         border.color: Theme.line
-        opacity: mini.st.phase ? mini.t : 0
+        opacity: mini.t
         scale: 0.96 + 0.04 * mini.t
 
         RowLayout {

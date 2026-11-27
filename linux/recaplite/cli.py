@@ -250,6 +250,44 @@ def cmd_simple(action: str):
     return run
 
 
+def cmd_diag(args, cfg: Config) -> int:
+    """Diagnosi della pillola: Quickshell, IPC, superfici di Hyprland. L'output si può incollare."""
+    def run(*cmd: str, timeout: int = 5) -> tuple[int, str]:
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            return r.returncode, (r.stdout + r.stderr).strip()
+        except (OSError, subprocess.TimeoutExpired) as error:
+            return 1, str(error)
+
+    state = _state()
+    print(f"sessione: {state['phase'] if state else 'nessuna'}"
+          + ("  (senza una call attiva la pillola si nasconde da sola)" if not state else ""))
+    code, out = run("qs", "ipc", "-c", "recap", "show")
+    print(f"qs ipc show [{code}]:\n  " + "\n  ".join(out.splitlines()[:12] or ["(vuoto)"]))
+    code, out = run("qs", "ipc", "-c", "recap", "call", "mini", "show")
+    print(f"mini show [{code}]: {out or 'ok'}")
+    time.sleep(1.2)
+    code, status = run(str(Path.home() / ".local/bin/recap-lite"), "status", "--json")
+    print(f"status --json (quello che legge la pillola): {status[:160]}")
+    code, out = run("hyprctl", "layers", "-j")
+    try:
+        monitors = json.loads(out)
+        names = ("recap-mini", "recap-menu", "latto", "waybar")
+        level_names = {"0": "background", "1": "bottom", "2": "top", "3": "overlay"}
+        for monitor, data in monitors.items():
+            for level, layers in sorted(data.get("levels", {}).items()):
+                for index, layer in enumerate(layers):
+                    if any(n in layer.get("namespace", "") for n in names):
+                        print(f"  {monitor} {level_names.get(level, level)}#{index}: {layer['namespace']} "
+                              f"x={layer['x']} y={layer['y']} {layer['w']}x{layer['h']}")
+    except (json.JSONDecodeError, AttributeError, KeyError):
+        print(f"hyprctl layers: {out[:200]}")
+    code, out = run("qs", "log", "-c", "recap", timeout=3)
+    lines = [l for l in out.splitlines() if any(k in l for k in ("WARN", "ERROR", "error", "rror:", "qml"))]
+    print("log di quickshell (avvisi ed errori):\n  " + "\n  ".join(lines[-15:] or ["(nessuno)"]))
+    return 0
+
+
 def cmd_check(args, cfg: Config) -> int:
     from .llm import Engine
 
@@ -352,6 +390,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("stop-async")
     sub.add_parser("menu")
     sub.add_parser("check")
+    sub.add_parser("diag")
     for name in ("mark", "note", "ask"):
         p = sub.add_parser(name)
         p.add_argument("text", nargs="*")
@@ -362,7 +401,7 @@ def main(argv: list[str] | None = None) -> int:
     handlers = {
         "start": cmd_start, "serve": cmd_serve, "stop": cmd_stop, "toggle": cmd_toggle, "show": cmd_show,
         "panel": cmd_panel, "status": cmd_status, "check": cmd_check, "recent": cmd_recent,
-        "stop-async": cmd_stop_async, "menu": cmd_menu,
+        "stop-async": cmd_stop_async, "menu": cmd_menu, "diag": cmd_diag,
         "mark": cmd_simple("mark"), "note": cmd_simple("note"), "ask": cmd_simple("ask"),
     }
     return handlers[args.command](args, cfg)

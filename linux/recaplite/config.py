@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
@@ -56,7 +57,7 @@ class Config:
                     if hasattr(cfg, key):
                         setattr(cfg, key, value)
             except (OSError, json.JSONDecodeError) as error:
-                print(f"recap-lite: config ignorata ({error})")
+                print(f"recap-lite: config ignorata ({error})", file=sys.stderr)
         return cfg
 
     def save_default(self) -> None:

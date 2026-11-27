@@ -83,4 +83,4 @@ Su Apple Silicon (Asahi) whisper gira sulla CPU: `small` regge una call in tempo
 recap-lite start --replay altri.wav io.wav --speed 2   # WAV 16 kHz mono
 ```
 
-Log del demone: `~/.cache/recap-lite/recap-lite.log`.
+Log del demone: `~/.cache/recap-lite/recap-lite.log`. Se la pillola non compare: `recap-lite diag` (stato di Quickshell, superfici di Hyprland, errori QML).
