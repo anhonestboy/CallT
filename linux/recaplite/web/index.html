@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recap Lite</title>
+<style>
+  :root {
+    --bg: rgba(22, 24, 34, 0.92);
+    --sheet: rgba(255, 255, 255, 0.045);
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #e9eaf2;
+    --muted: #9a9db3;
+    --faint: #6c6f85;
+    --accent: #7c8cff;
+    --others: #c48cff;
+    --red: #ff5d5d;
+    --green: #5ed39b;
+    --orange: #ffb35c;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: rgba(246, 246, 250, 0.94); --sheet: rgba(255, 255, 255, 0.7); --line: rgba(0, 0, 0, 0.08);
+      --text: #1d1e26; --muted: #5d6075; --faint: #8b8ea3;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 13.5px/1.5 "Inter", "SF Pro Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  /* Barra superiore */
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 12px 10px 16px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); flex: none;
+         box-shadow: 0 0 0 0 rgba(255, 93, 93, .5); animation: pulse 1.6s infinite; }
+  .dot.idle { background: var(--faint); animation: none; box-shadow: none; }
+  .dot.done { background: var(--green); animation: none; box-shadow: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 93, 93, .55); }
+                     70% { box-shadow: 0 0 0 9px rgba(255, 93, 93, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 93, 93, 0); } }
+  .status { flex: 1; min-width: 0; }
+  .timer { font: 600 21px/1.1 "SF Pro Rounded", "Inter", system-ui, sans-serif; font-variant-numeric: tabular-nums;
+           letter-spacing: -0.3px; }
+  .sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .actions { display: flex; gap: 2px; align-items: center; }
+  .icon { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent;
+          display: grid; place-items: center; font-size: 15px; transition: background .12s; }
+  .icon:hover { background: rgba(127, 127, 127, .16); }
+  .icon:disabled { opacity: .4; cursor: default; }
+  .stop { background: var(--red); margin-left: 4px; }
+  .stop:hover { background: #ff7373; }
+  .stop span { width: 10px; height: 10px; border-radius: 3px; background: #fff; display: block; }
+  .sep { width: 1px; height: 18px; background: var(--line); margin: 0 5px; }
+
+  /* Schede */
+  nav { display: flex; gap: 2px; margin: 0 10px 8px; padding: 3px; border-radius: 999px; background: var(--sheet); }
+  nav button { flex: 1; border: 0; background: transparent; border-radius: 999px; padding: 5px 6px;
+               color: var(--muted); font-size: 12px; font-weight: 500; white-space: nowrap; transition: all .18s; }
+  nav button.on { background: rgba(127, 127, 127, .2); color: var(--text); }
+
+  main { flex: 1; min-height: 0; margin: 0 8px; border-radius: var(--radius); background: var(--sheet);
+         border: 1px solid var(--line); overflow: hidden; display: flex; }
+  .pane { flex: 1; overflow-y: auto; padding: 14px 18px; display: none; }
+  .pane.on { display: block; }
+  .pane::-webkit-scrollbar { width: 8px; }
+  .pane::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, .3); border-radius: 4px; }
+
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 11px; color: var(--muted); }
+  .toolbar .grow { flex: 1; }
+  .pill { border: 1px solid var(--line); background: rgba(127, 127, 127, .1); border-radius: 999px;
+          padding: 3px 10px; font-size: 11.5px; font-weight: 500; }
+  .pill:hover { background: rgba(127, 127, 127, .2); }
+  .warn { color: var(--orange); font-size: 12px; margin-bottom: 10px; }
+
+  /* Note (Markdown) */
+  .md h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0 0 6px; line-height: 1.25; }
+  .md h2 { font-size: 10.5px; font-weight: 600; letter-spacing: .9px; text-transform: uppercase; color: var(--muted);
+           margin: 18px 0 6px; padding-bottom: 5px; border-bottom: 1px solid var(--line); }
+  .md h2:first-child { margin-top: 0; }
+  .md h3 { font-size: 14.5px; font-weight: 600; margin: 12px 0 4px; }
+  .md p { margin: 4px 0; }
+  .md ul, .md ol { margin: 2px 0; padding-left: 18px; }
+  .md li { margin: 3px 0; }
+  .md ul li::marker { color: var(--accent); }
+  .md li.task { list-style: none; margin-left: -18px; }
+  .md li.task::before { content: "○"; color: var(--muted); margin-right: 7px; }
+  .md li.task.done::before { content: "●"; color: var(--green); }
+  .md li.task.done { color: var(--muted); text-decoration: line-through; }
+  .md blockquote { margin: 6px 0; padding-left: 12px; border-left: 3px solid var(--accent); color: var(--muted); }
+  .md code { font: 12px ui-monospace, "JetBrains Mono", monospace; background: rgba(127, 127, 127, .15);
+             padding: 1px 5px; border-radius: 5px; }
+  .md hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+  .md a { color: var(--accent); }
+
+  /* Trascrizione */
+  .line { display: flex; gap: 10px; margin-bottom: 14px; }
+  .bar { width: 3px; border-radius: 2px; background: var(--others); opacity: .8; flex: none; }
+  .line.me .bar { background: var(--accent); }
+  .who { font-size: 10.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--others); }
+  .line.me .who { color: var(--accent); }
+  .when { font-size: 11px; color: var(--faint); margin-left: 6px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .line.live .text { color: var(--muted); font-style: italic; }
+
+  /* Chat */
+  .bubble { max-width: 85%; padding: 8px 12px; border-radius: 14px; margin-bottom: 10px; background: rgba(127, 127, 127, .1); }
+  .bubble.question { margin-left: auto; background: var(--accent); color: #fff; }
+  .bubble.note { background: rgba(255, 210, 90, .16); }
+  .bubble.error { background: rgba(255, 150, 60, .14); color: var(--orange); }
+  .bubble .tag { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+
+  .empty { text-align: center; color: var(--muted); padding: 40px 18px; }
+  .empty b { display: block; color: var(--text); font-size: 14px; margin-bottom: 6px; }
+
+  /* Composer */
+  footer { display: flex; gap: 6px; align-items: flex-end; padding: 8px; }
+  .modes { display: flex; padding: 2px; border-radius: 999px; background: var(--sheet); }
+  .modes button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+  .modes button.on { background: rgba(127, 127, 127, .22); color: var(--text); }
+  textarea { flex: 1; resize: none; border: 1px solid var(--line); border-radius: 17px; background: var(--sheet);
+             color: var(--text); font: inherit; padding: 7px 12px; max-height: 96px; outline: none; }
+  textarea:focus { border-color: rgba(124, 140, 255, .55); }
+  .send { width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--accent); color: #fff;
+          font-weight: 700; flex: none; }
+  .send:disabled { background: rgba(127, 127, 127, .3); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="dot idle" id="dot"></div>
+  <div class="status">
+    <div class="timer" id="timer">--:--</div>
+    <div class="sub" id="sub">Connessione…</div>
+  </div>
+  <div class="actions" id="liveActions">
+    <button class="icon" id="markBtn" title="Segna questo momento">☆</button>
+    <button class="icon" id="refreshBtn" title="Aggiorna le note adesso">↻</button>
+    <div class="sep"></div>
+    <button class="icon stop" id="stopBtn" title="Ferma e scrivi le note"><span></span></button>
+  </div>
+  <div class="actions hidden" id="doneActions">
+    <button class="pill" id="openNotes">Apri note</button>
+    <button class="pill" id="openFolder">Cartella</button>
+    <button class="icon" id="closeBtn" title="Chiudi">✕</button>
+  </div>
+</header>
+
+<nav>
+  <button data-tab="notes" class="on">Note</button>
+  <button data-tab="transcript">Trascrizione</button>
+  <button data-tab="chat">Chiedi</button>
+</nav>
+
+<main>
+  <section class="pane on" id="notes">
+    <div class="toolbar"><span id="notesInfo"></span><span class="grow"></span></div>
+    <div class="warn hidden" id="notesError"></div>
+    <div class="md" id="notesBody"></div>
+  </section>
+  <section class="pane" id="transcript"><div id="lines"></div><div id="liveLines"></div></section>
+  <section class="pane" id="chat"><div id="chatBody"></div></section>
+</main>
+
+<footer id="composer">
+  <div class="modes">
+    <button id="modeAsk" class="on" title="Chiedi all'AI">✦</button>
+    <button id="modeNote" title="Aggiungi una nota tua">✎</button>
+  </div>
+  <textarea id="input" rows="1" placeholder="Chiedi qualcosa sulla call…"></textarea>
+  <button class="send" id="sendBtn" disabled>↑</button>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = null, lines = [], asNote = false;
+
+// ── Markdown essenziale ────────────────────────────────────
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+}
+function markdown(src) {
+  const out = []; let list = null, para = [];
+  const flushPara = () => { if (para.length) { out.push(`<p>${inline(para.join(" "))}</p>`); para = []; } };
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of src.split("\n")) {
+    const line = raw.trim();
+    let m;
+    if (!line || line.startsWith("```")) { flushPara(); closeList(); continue; }
+    if ((m = line.match(/^(#{1,6})\s+(.*)$/))) { flushPara(); closeList(); const n = Math.min(m[1].length, 3); out.push(`<h${n}>${inline(m[2])}</h${n}>`); continue; }
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line)) { flushPara(); closeList(); out.push("<hr>"); continue; }
+    if ((m = line.match(/^[-*+]\s+\[([ xX])\]\s+(.*)$/))) { flushPara(); if (list !== "ul") { closeList(); out.push("<ul>"); list = "ul"; } out.push(`<li class="task${m[1] !== " " ? " done" : ""}">${inline(m[2])}</li>`); continue; }
+    if ((m = line.match(/^[-*+]\s+(.*)$/))) { flushPara(); if (list !== "ul") { closeList(); out.push("<ul>"); list = "ul"; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if ((m = line.match(/^\d+[.)]\s+(.*)$/))) { flushPara(); if (list !== "ol") { closeList(); out.push("<ol>"); list = "ol"; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if (line.startsWith(">")) { flushPara(); closeList(); out.push(`<blockquote>${inline(line.replace(/^>\s?/, ""))}</blockquote>`); continue; }
+    closeList(); para.push(line);
+  }
+  flushPara(); closeList();
+  return out.join("");
+}
+
+// ── Utilità ────────────────────────────────────────────────
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : String(m).padStart(2, "0")) + ":" + String(x).padStart(2, "0"); };
+const ago = (t) => { const s = Math.round(Date.now() / 1000 - t); return s < 60 ? `${s} s fa` : `${Math.round(s / 60)} min fa`; };
+const label = (l) => l.speakerName || (l.speaker === "me" ? "Io" : "Altri");
+const post = (action, body = {}) => fetch(`/api/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+const nearBottom = (el) => el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+
+// ── Rendering ──────────────────────────────────────────────
+function render() {
+  if (!state) return;
+  const live = state.phase === "live", done = state.phase === "done";
+  $("dot").className = "dot" + (live ? "" : done ? " done" : " idle");
+  $("liveActions").classList.toggle("hidden", !live);
+  $("doneActions").classList.toggle("hidden", live);
+  $("composer").classList.toggle("hidden", !(live || done) || !state.engine || state.engine === "nessuna AI");
+
+  let sub;
+  if (state.phase === "finishing") sub = state.phaseMessage || "Concludo…";
+  else if (state.phase === "failed") sub = "⚠ " + (state.error || "errore");
+  else if (done) sub = "Note pronte · " + state.name;
+  else if (state.error) sub = "⚠ " + state.error;
+  else if (state.notesBusy) sub = "Aggiorno le note…";
+  else if (state.backlog > 8) sub = `Trascrizione in ritardo di ${Math.round(state.backlog)} s`;
+  else sub = `${state.engine} · whisper ${state.model}`;
+  $("sub").textContent = sub;
+
+  // Note
+  $("notesInfo").textContent = state.notesBusy ? "Aggiornamento…" : state.notesUpdated ? "Aggiornate " + ago(state.notesUpdated) : "";
+  $("notesError").textContent = state.notesError || "";
+  $("notesError").classList.toggle("hidden", !state.notesError);
+  $("notesBody").innerHTML = state.notes ? markdown(state.notes)
+    : `<div class="empty"><b>Qui compariranno le note</b>Dopo il primo minuto di conversazione l'AI inizia a scrivere le note e le aggiorna mentre parlate.</div>`;
+
+  // Trascrizione
+  const pane = $("transcript"), stick = nearBottom(pane);
+  $("lines").innerHTML = lines.length || live ? lines.map((l) =>
+    `<div class="line ${l.speaker}"><div class="bar"></div><div><div class="who">${esc(label(l))}<span class="when">${fmt(l.start)}</span></div><div class="text">${esc(l.text)}</div></div></div>`).join("")
+    : `<div class="empty"><b>In ascolto…</b>Quello che dici tu è “Io”, gli altri partecipanti “Altri”.</div>`;
+  const speaking = ["others", "me"].filter((s) => state.speaking[s]);
+  $("liveLines").innerHTML = speaking.map((s) =>
+    `<div class="line ${s} live"><div class="bar"></div><div><div class="who">${s === "me" ? "Io" : "Altri"}</div><div class="text">sta parlando…</div></div></div>`).join("");
+  if (stick) pane.scrollTop = pane.scrollHeight;
+
+  // Chat
+  const chat = $("chat"), stickChat = nearBottom(chat);
+  $("chatBody").innerHTML = (state.chat.length ? state.chat.map((c) => {
+    if (c.role === "answer") return `<div class="bubble"><div class="md">${markdown(c.text)}</div></div>`;
+    const tag = c.role === "note" ? `<div class="tag">La tua nota</div>` : "";
+    return `<div class="bubble ${c.role}">${tag}${esc(c.text)}</div>`;
+  }).join("") : `<div class="empty"><b>Chiedi della call</b>“Cosa hanno detto sul budget?”, “Riassumi gli ultimi 5 minuti”. Oppure scrivi una nota tua: finisce nelle note.</div>`)
+    + (state.askBusy ? `<div class="bubble">…</div>` : "");
+  if (stickChat) chat.scrollTop = chat.scrollHeight;
+}
+
+function tick() {
+  if (state && state.phase === "live") $("timer").textContent = fmt(Date.now() / 1000 - state.startedAt);
+  else if (state && state.phase !== "starting") $("timer").textContent = state.phase === "done" ? "Fatto" : fmt(state.elapsed);
+}
+setInterval(tick, 1000);
+
+// ── Aggiornamenti dal demone (SSE) ─────────────────────────
+function connect() {
+  const source = new EventSource(`/events?since=${Math.max(0, lines.length - 3)}`);
+  source.onmessage = (event) => {
+    const snap = JSON.parse(event.data);
+    if (snap.linesFrom > lines.length) {
+      // perso un pezzo (riconnessione): ricarica tutto
+      fetch("/api/state?since=0").then((r) => r.json()).then((full) => { lines = full.lines; state = full; render(); tick(); });
+      return;
+    }
+    lines = lines.slice(0, snap.linesFrom).concat(snap.lines);
+    state = snap; render(); tick();
+  };
+  source.onerror = () => { source.close(); $("sub").textContent = "Demone non raggiungibile — riprovo…"; setTimeout(connect, 2000); };
+}
+// La prima volta carica tutto, poi segue gli incrementi.
+// ?snapshot = solo lo stato attuale (screenshot); ?tab=transcript|chat apre quella scheda.
+const params = new URLSearchParams(location.search);
+fetch("/api/state?since=0").then((r) => r.json()).then((full) => {
+  state = full; lines = full.lines; render(); tick();
+  if (!params.has("snapshot")) connect();
+}).catch(() => setTimeout(() => location.reload(), 2000));
+
+// ── Interazione ────────────────────────────────────────────
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".pane").forEach((p) => p.classList.toggle("on", p.id === b.dataset.tab));
+});
+const showTab = (tab) => document.querySelector(`nav button[data-tab="${tab}"]`).click();
+if (params.get("tab")) showTab(params.get("tab"));
+$("markBtn").onclick = () => post("mark");
+$("refreshBtn").onclick = () => post("refresh");
+$("stopBtn").onclick = () => post("stop");
+$("openNotes").onclick = () => post("open", { what: "notes" });
+$("openFolder").onclick = () => post("open", { what: "folder" });
+$("closeBtn").onclick = () => { post("quit"); setTimeout(() => window.close(), 200); };
+
+const setMode = (note) => { asNote = note; $("modeNote").classList.toggle("on", note); $("modeAsk").classList.toggle("on", !note);
+  $("input").placeholder = note ? "Scrivi una nota (finisce nelle note)…" : "Chiedi qualcosa sulla call…"; };
+$("modeAsk").onclick = () => setMode(false);
+$("modeNote").onclick = () => setMode(true);
+const input = $("input");
+input.oninput = () => { $("sendBtn").disabled = !input.value.trim(); input.style.height = "auto"; input.style.height = Math.min(96, input.scrollHeight) + "px"; };
+function send() {
+  const text = input.value.trim(); if (!text) return;
+  input.value = ""; input.oninput();
+  if (asNote) post("note", { text }); else { post("ask", { text }); showTab("chat"); }
+}
+$("sendBtn").onclick = send;
+input.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+</script>
+</body>
+</html>

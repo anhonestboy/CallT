@@ -1,0 +1,300 @@
+"""recap-lite — note in tempo reale delle tue call, su Linux.
+
+  recap-lite start [--title "Nome"]   avvia una sessione e apre il pannello
+  recap-lite stop                     ferma, scrive le note finali e stampa dove sono
+  recap-lite toggle                   avvia o ferma (per una scorciatoia)
+  recap-lite panel                    mostra/nasconde il pannello (la sessione continua)
+  recap-lite mark ["nota"]            segna il momento (⭐)
+  recap-lite note "testo"             aggiunge una nota tua
+  recap-lite ask "domanda"            chiede qualcosa sulla call (risposta nel pannello)
+  recap-lite status [--waybar]        stato, anche in formato modulo waybar
+  recap-lite check                    controlla che tutto il necessario ci sia
+
+Collaudo senza call: recap-lite start --replay altri.wav [io.wav] [--speed 2]
+(WAV 16 kHz mono).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import threading
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+from .config import PORT, RUNTIME_DIR, STATE_FILE, Config
+
+URL = f"http://127.0.0.1:{PORT}"
+PANEL_PID = RUNTIME_DIR / "recap-lite-panel.pid"
+LOG_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "recap-lite"
+
+
+# ── comunicazione col demone ────────────────────────────────
+
+def _request(path: str, body: dict | None = None, timeout: float = 3):
+    data = json.dumps(body or {}).encode() if body is not None else None
+    request = urllib.request.Request(URL + path, data=data,
+                                     headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.load(response)
+
+
+def _state() -> dict | None:
+    try:
+        return _request("/api/state?since=999999999")
+    except (urllib.error.URLError, OSError, ValueError):
+        return None
+
+
+def _post(action: str, **body) -> dict | None:
+    try:
+        return _request(f"/api/{action}", body)
+    except (urllib.error.URLError, OSError, ValueError):
+        return None
+
+
+# ── pannello ────────────────────────────────────────────────
+
+def _panel_alive() -> int | None:
+    try:
+        pid = int(PANEL_PID.read_text())
+        os.kill(pid, 0)
+        return pid
+    except (OSError, ValueError):
+        return None
+
+
+def open_panel(cfg: Config) -> None:
+    if _panel_alive():
+        return
+    profile = Path.home() / ".local/share/recap-lite/panel-profile"
+    profile.mkdir(parents=True, exist_ok=True)
+    command = [part.format(url=URL, profile=profile) for part in cfg.panel_command]
+    if not shutil.which(command[0]):
+        command = ["xdg-open", URL]
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               start_new_session=True)
+    PANEL_PID.write_text(str(process.pid))
+
+
+def close_panel() -> bool:
+    pid = _panel_alive()
+    if not pid:
+        return False
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except OSError:
+        os.kill(pid, signal.SIGTERM)
+    PANEL_PID.unlink(missing_ok=True)
+    return True
+
+
+# ── comandi ─────────────────────────────────────────────────
+
+def cmd_start(args, cfg: Config) -> int:
+    state = _state()
+    if state and state["phase"] in ("starting", "live", "finishing"):
+        if not args.no_panel:
+            open_panel(cfg)
+        print(f"Sessione già attiva: {state['name']}")
+        return 0
+    if state:  # sessione precedente conclusa: chiude il vecchio demone
+        _post("quit")
+        time.sleep(0.5)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    serve_args = [sys.executable, "-m", "recaplite", "serve"]
+    if args.title:
+        serve_args += ["--title", args.title]
+    if args.replay:
+        serve_args += ["--replay", *args.replay, "--speed", str(args.speed)]
+    log = open(LOG_DIR / "recap-lite.log", "ab")
+    subprocess.Popen(serve_args, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
+                     start_new_session=True, cwd=str(Path(__file__).resolve().parent.parent))
+    for _ in range(100):
+        time.sleep(0.2)
+        state = _state()
+        if state:
+            break
+    else:
+        print(f"Il demone non risponde: vedi {LOG_DIR / 'recap-lite.log'}", file=sys.stderr)
+        return 1
+    print(f"🔴 {state['name']} — note: {state['engine']}, trascrizione: whisper {state['model']}")
+    if not args.no_panel:
+        open_panel(cfg)
+    return 0
+
+
+def cmd_stop(args, cfg: Config) -> int:
+    state = _state()
+    if not state:
+        print("Nessuna sessione attiva.")
+        return 1
+    if state["phase"] == "live":
+        _post("stop")
+    last = ""
+    while True:
+        state = _state()
+        if not state:
+            print("Il demone si è chiuso.", file=sys.stderr)
+            return 1
+        if state["phase"] in ("done", "failed"):
+            break
+        if state["phaseMessage"] != last:
+            last = state["phaseMessage"]
+            print(last)
+        time.sleep(0.5)
+    print(f"✅ {state['folder']}")
+    return 0
+
+
+def cmd_toggle(args, cfg: Config) -> int:
+    state = _state()
+    if state and state["phase"] == "live":
+        # Non blocca la scorciatoia: il demone finisce da solo e notifica.
+        _post("stop")
+        return 0
+    args.title, args.replay, args.speed, args.no_panel = None, None, 1.0, False
+    return cmd_start(args, cfg)
+
+
+def cmd_panel(args, cfg: Config) -> int:
+    if close_panel():
+        return 0
+    if not _state():
+        print("Nessuna sessione attiva: recap-lite start")
+        return 1
+    open_panel(cfg)
+    return 0
+
+
+def cmd_status(args, cfg: Config) -> int:
+    state = _state()
+    if args.waybar:
+        if not state or state["phase"] in ("done",):
+            print(json.dumps({"text": "", "class": "idle"}))
+        else:
+            minutes, seconds = divmod(int(state["elapsed"]), 60)
+            text = {"live": f"● {minutes:02d}:{seconds:02d}", "finishing": "◌ note…",
+                    "starting": "◌", "failed": "⚠"}.get(state["phase"], "")
+            tooltip = f"Recap — {state['name']}\n{state['lineCount']} frasi · {state['engine']}"
+            print(json.dumps({"text": text, "class": state["phase"], "tooltip": tooltip}))
+        return 0
+    if not state:
+        print("Nessuna sessione attiva.")
+        return 1
+    print(f"{state['name']}: {state['phase']} {state['phaseMessage']}".strip())
+    print(f"  {int(state['elapsed'])} s · {state['lineCount']} frasi · ritardo trascrizione "
+          f"{state['backlog']} s · note: {state['engine']}")
+    if state.get("error"):
+        print(f"  ⚠ {state['error']}")
+    return 0
+
+
+def cmd_simple(action: str):
+    def run(args, cfg: Config) -> int:
+        text = " ".join(args.text) if getattr(args, "text", None) else ""
+        key = {"mark": "note", "note": "text", "ask": "text"}[action]
+        if _post(action, **{key: text}) is None:
+            print("Nessuna sessione attiva.")
+            return 1
+        return 0
+    return run
+
+
+def cmd_check(args, cfg: Config) -> int:
+    from .llm import Engine
+
+    ok = True
+
+    def line(good: bool, label: str, detail: str = "") -> None:
+        nonlocal ok
+        ok &= good
+        print(f"{'✓' if good else '✗'} {label}{(' — ' + detail) if detail else ''}")
+
+    for name, command in (("microfono", cfg.mic_command), ("audio di sistema", cfg.system_command)):
+        line(bool(shutil.which(command[0])), f"cattura {name}", " ".join(command[:2]))
+    try:
+        import pywhispercpp  # noqa: F401
+        line(True, "whisper.cpp (pywhispercpp)", f"modello {cfg.whisper_model}")
+    except ImportError:
+        line(False, "whisper.cpp (pywhispercpp)", "sudo dnf install python3-pywhispercpp")
+    engine = Engine(cfg)
+    line(engine.available or cfg.engine == "off", "note AI", engine.label)
+    line(bool(shutil.which(cfg.panel_command[0])), "pannello", cfg.panel_command[0])
+    line(bool(shutil.which("ffmpeg")), "ffmpeg (facoltativo)", "audio salvato come .m4a invece che WAV")
+    print(f"Output: {Path(cfg.output_dir).expanduser()}")
+    return 0 if ok else 1
+
+
+def cmd_serve(args, cfg: Config) -> int:
+    from .server import serve
+    from .session import Session
+
+    replay = None
+    if args.replay:
+        files = [Path(p).expanduser() for p in args.replay]
+        replay = (files[0], files[1] if len(files) > 1 else None)
+    session = Session(cfg, title=args.title, replay=replay, speed=args.speed)
+    quit_event = threading.Event()
+    server = serve(session, PORT, quit_event.set)
+    STATE_FILE.write_text(json.dumps({"pid": os.getpid(), "port": PORT}))
+    signal.signal(signal.SIGTERM, lambda *_: (session.stop(), quit_event.set()))
+    try:
+        session.start()
+    except Exception as error:  # noqa: BLE001
+        session.phase, session.error = "failed", str(error)
+        session._bump()
+    # A sessione conclusa resta in ascolto ancora mezz'ora per il pannello.
+    failed_at = None
+    while not quit_event.wait(timeout=1):
+        if session.phase == "failed":
+            failed_at = failed_at or time.time()
+        ended = session.finished_at or failed_at
+        if ended and time.time() - ended > 1800:
+            break
+    if session.phase == "live":
+        session.stop()
+        while session.phase == "finishing":
+            time.sleep(0.5)
+    server.shutdown()
+    STATE_FILE.unlink(missing_ok=True)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="recap-lite", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    for name in ("start", "serve"):
+        p = sub.add_parser(name)
+        p.add_argument("--title")
+        p.add_argument("--replay", nargs="+", metavar="WAV")
+        p.add_argument("--speed", type=float, default=1.0)
+        if name == "start":
+            p.add_argument("--no-panel", action="store_true")
+    sub.add_parser("stop")
+    sub.add_parser("toggle")
+    sub.add_parser("panel")
+    status = sub.add_parser("status")
+    status.add_argument("--waybar", action="store_true")
+    sub.add_parser("check")
+    for name in ("mark", "note", "ask"):
+        p = sub.add_parser(name)
+        p.add_argument("text", nargs="*")
+
+    args = parser.parse_args(argv)
+    cfg = Config.load()
+    cfg.save_default()
+    handlers = {
+        "start": cmd_start, "serve": cmd_serve, "stop": cmd_stop, "toggle": cmd_toggle,
+        "panel": cmd_panel, "status": cmd_status, "check": cmd_check,
+        "mark": cmd_simple("mark"), "note": cmd_simple("note"), "ask": cmd_simple("ask"),
+    }
+    return handlers[args.command](args, cfg)

@@ -6,3 +6,4 @@ app/Recap.xcodeproj/
 *.xcuserstate
 DerivedData/
 app/tools/diarizer/.build/
+__pycache__/
