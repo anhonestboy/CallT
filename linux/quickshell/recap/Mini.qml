@@ -6,7 +6,7 @@ import Quickshell.Wayland
 
 // Pannello ridotto: pillola sotto la barra, in alto a destra (come la barretta compatta del Mac).
 // Clic sul timer o su "Apri" riapre il pannello; ⭐ segna; stop chiede conferma.
-// Si mostra con `qs ipc -c recap call mini show` (avvio della call, "Riduci" nel pannello) e
+// Si mostra con `qs ipc -c recap call mini open` (avvio della call, "Riduci" nel pannello) e
 // sparisce da sola a call conclusa, dopo aver offerto le note.
 //
 // Costruita come l'isola di Latto, che su Hyprland funziona: una finestra per monitor, sempre

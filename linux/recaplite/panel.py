@@ -87,7 +87,7 @@ def _place(client: dict) -> None:
 # ── pannello ─────────────────────────────────────────────────
 
 def open_panel(cfg: Config) -> None:
-    qs_call("mini", "hide", start=False)
+    qs_call("mini", "close", start=False)
     on_hyprland = _hyprctl("version") is not None
     existing = windows(alive())
     if existing:
@@ -120,7 +120,7 @@ def open_panel(cfg: Config) -> None:
 
 def open_default(cfg: Config) -> None:
     """Vista all'avvio: la pillola (default) o il pannello grande. Senza Quickshell, il pannello."""
-    if cfg.start_view != "panel" and qs_call("mini", "show")[0]:
+    if cfg.start_view != "panel" and qs_call("mini", "open")[0]:
         return
     open_panel(cfg)
 
@@ -153,7 +153,7 @@ def minimize() -> tuple[bool, str]:
     """Mostra la pillola compatta sotto la barra e chiude la finestra.
     Se la pillola non compare (Quickshell assente o in errore) la finestra resta aperta:
     non si resta mai senza un modo per tornare al pannello. Ritorna (riuscito, errore)."""
-    ok, error = qs_call("mini", "show")
+    ok, error = qs_call("mini", "open")
     if not ok:
         return False, error
     close_panel()
@@ -163,7 +163,7 @@ def minimize() -> tuple[bool, str]:
 def hide() -> None:
     """Chiude la finestra: resta la voce nella barra (e Super+Alt+N) per riaprirla."""
     close_panel()
-    qs_call("mini", "hide", start=False)
+    qs_call("mini", "close", start=False)
 
 
 def qs_call(target: str, function: str, *args: str, start: bool = True) -> tuple[bool, str]:
@@ -178,7 +178,11 @@ def qs_call(target: str, function: str, *args: str, start: bool = True) -> tuple
             result = subprocess.run(call, capture_output=True, text=True, timeout=5)
         except subprocess.TimeoutExpired:
             return False, "qs ipc non risponde"
-        lines = (result.stderr or result.stdout).strip().splitlines()
+        output = (result.stderr or result.stdout).strip()
+        lines = output.splitlines()
+        # Se qs non riconosce la chiamata stampa l'elenco delle funzioni ed esce con 0.
+        if result.returncode == 0 and "function " in output:
+            return False, f"qs ipc non ha eseguito {target}.{function}"
         return result.returncode == 0, (lines[-1] if lines else f"qs ipc: codice {result.returncode}")
 
     ok, error = attempt()

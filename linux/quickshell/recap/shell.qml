@@ -21,14 +21,15 @@ ShellRoot {
         function close(): void { menu.open = false }
     }
 
-    // Pannello ridotto (pillola sotto la barra)
+    // Pannello ridotto (pillola sotto la barra).
+    // Niente "show"/"hide": `qs ipc call mini show` verrebbe letto come il comando `qs ipc show`.
     IpcHandler {
         target: "mini"
-        function show(): void {
+        function open(): void {
             MiniState.screenName = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""
             MiniState.shown = true
         }
-        function hide(): void { MiniState.shown = false }
-        function toggle(): void { if (MiniState.shown) hide(); else show() }
+        function close(): void { MiniState.shown = false }
+        function toggle(): void { if (MiniState.shown) close(); else open() }
     }
 }
