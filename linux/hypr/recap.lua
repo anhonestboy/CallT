@@ -29,6 +29,7 @@ for i, class in ipairs(classes) do
         size    = { 480, 760 },
         move    = { "monitor_w-492", "48" },
         opacity = "0.96 0.90",
+        no_screen_share = true,  -- in condivisione schermo al suo posto c'è un rettangolo nero
     })
     if not ok then
         pcall(hl.window_rule, {
@@ -38,4 +39,9 @@ for i, class in ipairs(classes) do
             size  = "480 760",
         })
     end
+end
+
+-- Pillola e menu (Quickshell) nascosti a chi guarda lo schermo condiviso, come sul Mac.
+for _, ns in ipairs({ "recap-mini", "recap-menu" }) do
+    pcall(hl.layer_rule, { name = "recap-noshare-" .. ns, match = { namespace = "^" .. ns .. "$" }, no_screen_share = true })
 end

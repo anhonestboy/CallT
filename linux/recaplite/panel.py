@@ -82,6 +82,7 @@ def _place(client: dict) -> None:
         _dispatch(f"hl.dsp.window.center({{ window = {window} }})")
     if not client.get("pinned"):
         _dispatch(f"hl.dsp.window.pin({{ window = {window} }})")
+    _dispatch(f'hl.dsp.window.set_prop({{ prop = "no_screen_share", value = "1", window = {window} }})')
 
 
 # ── pannello ─────────────────────────────────────────────────
