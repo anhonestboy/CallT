@@ -114,7 +114,7 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 7
             Icon { name: b.icon; visible: b.icon !== ""; filled: b.prominent; color: b.prominent ? Theme.ink : Theme.fg }
-            Text { text: b.label; color: b.prominent ? Theme.ink : Theme.fg; font.pixelSize: 13.5
+            Text { text: b.label; color: b.prominent ? Theme.ink : Theme.fg; font.pixelSize: 14
                    font.weight: b.prominent ? Font.DemiBold : Font.Normal }
         }
         MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: b.clicked() }
@@ -161,7 +161,7 @@ PanelWindow {
                     text: win.live ? "In call" : win.finishing ? "Note…" : win.done ? "Pronte" : ""
                     visible: text !== ""
                     color: win.live ? Theme.red : Theme.dim
-                    font.pixelSize: 11.5; font.weight: Font.Medium
+                    font.pixelSize: 12; font.weight: Font.Medium
                 }
             }
 
@@ -175,7 +175,7 @@ PanelWindow {
                 Text {
                     Layout.fillWidth: true
                     text: "Trascrive mentre parlate e scrive le note con l'AI. Super+Alt+C per avviare e fermare."
-                    color: Theme.dim; font.pixelSize: 11.5; wrapMode: Text.WordWrap
+                    color: Theme.dim; font.pixelSize: 12; wrapMode: Text.WordWrap
                 }
             }
 
@@ -204,7 +204,7 @@ PanelWindow {
                         text: (win.st.error ? "⚠ " + win.st.error
                                : (win.st.notesBusy ? "Aggiorno le note… · " : "")
                                  + (win.st.lineCount || 0) + " frasi · " + (win.st.engine || ""))
-                        color: win.st.error ? "#ffb35c" : Theme.dim; font.pixelSize: 11.5; elide: Text.ElideRight
+                        color: win.st.error ? "#ffb35c" : Theme.dim; font.pixelSize: 12; elide: Text.ElideRight
                     }
                     RowLayout {
                         spacing: 8
@@ -222,7 +222,7 @@ PanelWindow {
                 spacing: 10
                 Icon { name: "progress_activity"; color: Theme.primary
                        RotationAnimation on rotation { running: win.finishing && win.open; from: 0; to: 360; duration: 1000; loops: Animation.Infinite } }
-                Text { text: win.st.phaseMessage || "Scrivo le note…"; color: Theme.fg; font.pixelSize: 13.5 }
+                Text { text: win.st.phaseMessage || "Scrivo le note…"; color: Theme.fg; font.pixelSize: 14 }
             }
 
             // pronte
@@ -238,7 +238,7 @@ PanelWindow {
                 visible: win.recents.length > 0
                 Layout.fillWidth: true
                 spacing: 4
-                Text { text: "Recenti"; color: Theme.dim; font.pixelSize: 11.5; font.weight: Font.DemiBold; Layout.bottomMargin: 2 }
+                Text { text: "Recenti"; color: Theme.dim; font.pixelSize: 12; font.weight: Font.DemiBold; Layout.bottomMargin: 2 }
                 Repeater {
                     model: win.recents
                     delegate: Rectangle {

@@ -127,6 +127,11 @@
           font-weight: 700; flex: none; }
   .send:disabled { background: rgba(127, 127, 127, .3); }
   .hidden { display: none !important; }
+  #toast { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 10; padding: 10px 14px;
+           border-radius: 12px; background: rgba(255, 179, 92, .16); border: 1px solid rgba(255, 179, 92, .35);
+           color: inherit; font-size: 12.5px; line-height: 1.4; backdrop-filter: blur(12px);
+           transition: opacity .2s, transform .2s; }
+  #toast.off { opacity: 0; transform: translateY(6px); pointer-events: none; }
 </style>
 </head>
 <body>
@@ -307,7 +312,20 @@ if (params.get("tab")) showTab(params.get("tab"));
 $("markBtn").onclick = () => post("mark");
 $("refreshBtn").onclick = () => post("refresh");
 $("stopBtn").onclick = () => post("stop");
-$("miniBtn").onclick = () => post("minimize");
+let toastTimer;
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  t.classList.remove("off");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add("off"), 7000);
+}
+$("miniBtn").onclick = async () => {
+  try {
+    const r = await (await post("minimize")).json();
+    if (r.ok === false) toast(`Non riesco a ridurre a pillola: ${r.error}. Il pannello resta aperto.`);
+  } catch (e) { /* finestra già chiusa */ }
+};
 $("hideBtn").onclick = () => post("hide");
 $("openNotes").onclick = () => post("open", { what: "notes" });
 $("openFolder").onclick = () => post("open", { what: "folder" });
@@ -327,5 +345,6 @@ function send() {
 $("sendBtn").onclick = send;
 input.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 </script>
+<div id="toast" class="off" role="status"></div>
 </body>
 </html>

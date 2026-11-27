@@ -144,9 +144,10 @@ def cmd_panel(args, cfg: Config) -> int:
         panel_mod.hide()
         return 0
     if args.mini:
-        if minimize():
+        ok, error = minimize()
+        if ok:
             return 0
-        print("La pillola non si apre (Quickshell): prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
+        print(f"La pillola non si apre: {error}\nProva `qs -c recap` per vedere l'errore.", file=sys.stderr)
         return 1
     if not args.show and close_panel():
         return 0
@@ -230,9 +231,10 @@ def cmd_menu(args, cfg: Config) -> int:
         int(x), int(y)
     except (OSError, ValueError, subprocess.TimeoutExpired):
         x, y = "-1", "-1"
-    if qs_call("menu", "toggleAt", x, y):
+    ok, error = qs_call("menu", "toggleAt", x, y)
+    if ok:
         return 0
-    print("Quickshell non risponde: prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
+    print(f"Quickshell non risponde ({error}): prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
     return 1
 
 

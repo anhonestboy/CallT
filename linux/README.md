@@ -39,8 +39,8 @@ Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante l
 | Super+Alt+B | riduce il pannello a pillola sotto la barra |
 | Super+Alt+M | segna il momento ⭐ |
 
-Il pannello si apre in alto a destra, flottante, fissato su tutti i workspace e leggermente trasparente. Nell'intestazione, come sul Mac:
-- **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, **Apri** e stop. Clic sul timer o su Apri riapre il pannello; lo stop chiede conferma ("Ferma?", secondo clic entro 3 secondi). A call conclusa la pillola offre le note e poi si chiude. Se la pillola non può comparire (Quickshell non risponde) il pannello resta aperto.
+Il pannello si apre in alto a destra, flottante, fissato su tutti i workspace e leggermente trasparente. La regola di Hyprland riconosce la finestra dalla classe; se non prende, `recap-lite` la sistema da sé con `hyprctl`. Nell'intestazione, come sul Mac:
+- **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, **Apri** e stop. Clic sul timer o su Apri riapre il pannello; lo stop chiede conferma ("Ferma?", secondo clic entro 3 secondi). A call conclusa la pillola offre le note e poi si chiude. Se la pillola non può comparire (Quickshell non risponde) il pannello resta aperto e dice perché.
 - **Nascondi** lo chiude e basta: la call continua, lo riapri da "Pannello" nel menu, con il clic destro sull'icona o con Super+Alt+N.
 
 Se usi un'altra barra, la voce si aggiunge a mano (`waybar_patch.py` mostra il modulo): `recap-lite status --waybar` per il testo, `recap-lite menu` al clic.

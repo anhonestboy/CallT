@@ -147,7 +147,7 @@ PanelWindow {
                 visible: !mini.live
                 text: mini.st.phase === "finishing" ? (mini.st.phaseMessage || "Scrivo le note…") : "Note pronte"
                 color: mini.st.phase === "done" ? Theme.green : Theme.fg
-                font.pixelSize: 13.5; font.weight: Font.Medium
+                font.pixelSize: 14; font.weight: Font.Medium
                 Layout.leftMargin: 10; Layout.rightMargin: 6
             }
             Round { visible: mini.st.phase === "done" && !!mini.st.notesFile; icon: "description"; label: "Apri"

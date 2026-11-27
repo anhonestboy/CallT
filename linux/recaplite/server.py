@@ -102,7 +102,11 @@ def serve(session: Session, port: int, on_quit) -> ThreadingHTTPServer:
             elif action == "hide":
                 threading.Thread(target=panel.hide, daemon=True).start()
             elif action == "minimize":
-                threading.Thread(target=panel.minimize, daemon=True).start()
+                # Sincrono: se la pillola non compare il pannello resta aperto e mostra il motivo.
+                ok, error = panel.minimize()
+                if not ok:
+                    self._json({"ok": False, "error": error})
+                    return
             elif action == "quit":
                 threading.Thread(target=on_quit, daemon=True).start()
             else:
