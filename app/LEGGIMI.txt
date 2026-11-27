@@ -1,13 +1,15 @@
-Recap — Registrazione, trascrizione e note automatiche delle call
-==================================================================
+Recap — Note in tempo reale per le tue call
+===========================================
 
 COS'È
-Recap vive nella barra dei menu (icona a forma d'onda). Registra le tue
-call (audio di sistema + microfono, con o senza video dello schermo) e
-osserva una cartella: ogni video o audio che ci finisce dentro viene
-trascritto automaticamente, riassunto in note Markdown organizzate e,
-per i video, compresso. Tutto avviene sul tuo Mac: nessun dato lascia
-il computer, a meno che tu non scelga un motore di note cloud nelle
+Recap vive nella barra dei menu (icona a forma d'onda). Durante una call
+trascrive ciò che viene detto, salva screenshot di ciò che viene
+condiviso, tiene brevi clip quando servono e scrive le note con l'AI
+mentre la riunione va avanti. Osserva anche una cartella: ogni video o
+audio che ci finisce dentro viene trascritto, riassunto in note Markdown
+e, per i video, compresso. Trascrizione e OCR avvengono sul tuo Mac;
+testo e screenshot arrivano solo al motore AI scelto nelle impostazioni
+(o a nessuno). Prima si chiamava CallT: al primo avvio ne importa le
 impostazioni.
 
 REQUISITI
@@ -28,7 +30,12 @@ Va fatto una sola volta. Per registrare le call, autorizza Recap anche in
 
 USO
 - Clic sull'icona a forma d'onda nella barra dei menu.
-- "Registra chiamata" → video e audio, oppure solo audio.
+- "Avvia sessione live" (⌥⌘R) all'inizio della call; il pannello
+  galleggiante mostra note, trascrizione e catture. ⌃⌥N lo nasconde e
+  lo richiama, ⌃⌥S fa uno screenshot, ⌃⌥C salva una clip, ⌃⌥M segna
+  il momento.
+- Quando fermi, la cartella della call contiene note (.md) con
+  immagini, trascrizione e clip.
 - "Avvia monitoraggio" per la cartella osservata
   (predefinita: ~/CallRecordings — modificabile nelle Impostazioni).
 - Trascrizioni (.txt), note (.md) e video compressi compaiono nella

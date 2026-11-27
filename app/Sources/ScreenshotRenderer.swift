@@ -10,6 +10,9 @@ private final class KeyableWindow: NSWindow {
 
 @MainActor
 enum ScreenshotRenderer {
+    /// Durante il rendering la UI usa dati dimostrativi (niente file o schermi veri).
+    static var isRendering: Bool { CommandLine.arguments.contains("--render-screenshots") }
+
     static func runIfRequested() -> Bool {
         guard let idx = CommandLine.arguments.firstIndex(of: "--render-screenshots"),
               CommandLine.arguments.count > idx + 1 else { return false }
@@ -37,7 +40,7 @@ enum ScreenshotRenderer {
                    name: "settings-live.png", into: dir, settle: 1.5)
         await snap(AutomationTab().frame(width: 580),
                    name: "settings-automation.png", into: dir, settle: 3.0)
-        state.startMonitoring()
+        state.useDemoRecents()
         await snap(menuMock(state: state), name: "menu.png", into: dir, settle: 1.0)
         await snap(banner(), name: "banner.png", into: dir, settle: 0.5)
     }
@@ -62,7 +65,7 @@ enum ScreenshotRenderer {
             VStack(alignment: .leading, spacing: 6) {
                 Text(verbatim: "Recap")
                     .font(.system(size: 56, weight: .bold, design: .rounded))
-                Text(verbatim: "Record · Transcribe · Summarize — on-device")
+                Text(verbatim: "Live notes for your calls — on your Mac")
                     .font(.system(size: 21, weight: .medium))
                     .foregroundStyle(.secondary)
             }

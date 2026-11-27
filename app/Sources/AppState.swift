@@ -201,7 +201,21 @@ final class AppState: ObservableObject {
 
     func refreshRecents() {
         Task { @MainActor in
+            guard !ScreenshotRenderer.isRendering else { return }
             recents = await ProcessedRegistry.shared.recentDone(limit: 6)
+        }
+    }
+
+    /// Dati dimostrativi per gli screenshot della documentazione: mai i file veri.
+    func useDemoRecents() {
+        let now = Date()
+        recents = [
+            ("Call 2026-11-27 10.30", 3600.0), ("Call 2026-11-26 15.00", 90_000.0),
+            ("Weekly sync.m4a", 260_000.0),
+        ].map { name, age in
+            ProcessedRegistry.RecentItem(
+                sourcePath: "/demo/\(name)", transcriptPath: "/demo/\(name)_transcript.txt",
+                processedAt: now.addingTimeInterval(-age))
         }
     }
 

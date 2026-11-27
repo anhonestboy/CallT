@@ -2,9 +2,11 @@
 
 *[Italiano](README.it.md)*
 
-A macOS menu bar app that records, transcribes and summarizes your calls — entirely on-device by default.
+A macOS menu bar app that takes notes of your calls while they happen: real-time transcription, screenshots of what gets shared, short clips, and AI notes kept up to date during the meeting. Transcription and OCR run on-device.
 
-Drop a video or audio file into a watched folder (or hit **Record call**) and Recap automatically produces a transcript, organized Markdown notes, and an HEVC-compressed copy of the video.
+It also works after the fact: drop a video or audio file into a watched folder and Recap produces a transcript, organized Markdown notes, and an HEVC-compressed copy of the video.
+
+*Recap was called CallT up to version 1.3.2. On first launch it imports CallT's settings and history; API keys are picked up from the Keychain the first time they are needed.*
 
 ## Live session
 
@@ -29,10 +31,10 @@ Testing without a call: `Recap --live-replay recording.mp4 [--speed 2] [--live-t
 
 ## Features
 
-- **Call recording** (ScreenCaptureKit): system audio from *any* call tool (Zoom, Meet, Teams…) plus your microphone — with screen video, or audio-only (the screen is never written to disk in audio-only mode).
+- **Call recording** (ScreenCaptureKit): system audio from *any* call tool (Zoom, Meet, Teams…) plus your microphone, always on its own track through AVCapture so the call app's echo cancellation is never touched — with screen video, or audio-only.
 - **Speaker identification (diarization)** — fully on-device (CoreML via FluidAudio): transcripts become "Speaker 1/2/…" turns and the notes attribute positions and statements to each participant, using real names when the conversation reveals them.
 - **On-device transcription** with the macOS 26 speech engine (the same one used by Notes and Voice Memos) — no external dependencies. Optionally uses `whisper-cli` + a ggml model when installed.
-- **Organized notes (.md)**: after each transcription — summary, topics with details and timestamps, decisions, action items, open questions, written in the language of the call. Engines: Apple Intelligence on-device (default, free, map/reduce for long calls), Claude API, OpenRouter, DeepSeek, local Ollama, or any OpenAI-compatible endpoint (API keys live in the Keychain).
+- **Organized notes (.md)**: after each transcription — summary, topics with details and timestamps, decisions, action items, open questions, written in the language of the call. Engines: Apple Intelligence on-device (default, free, map/reduce for long calls), Claude through the local Claude Code login, Claude API, OpenRouter, DeepSeek, local Ollama, or any OpenAI-compatible endpoint (API keys live in the Keychain).
 - **Smart HEVC compression**: bitrate computed from the source (never above 65% of the original), optional 1080p downscale, and a guarantee the compressed file is kept only when genuinely smaller.
 - **Apple Shortcuts, both ways**: run a Shortcut with the transcript when a call finishes (delivery via mail/Slack/Notes/…), and a "Transcribe video" action exposed to the Shortcuts app (App Intents).
 - **Folder watching** with a persistent registry (no double processing across restarts), serial queue, notifications, persistent settings, English/Italian UI.
@@ -41,9 +43,13 @@ Testing without a call: `Recap --live-replay recording.mp4 [--speed 2] [--live-t
 
 ## Screenshots
 
-| Menu | Notes engines |
+| Menu | Live settings |
 |---|---|
-| ![Menu](../docs/screenshots/menu.png) | ![Notes settings](../docs/screenshots/settings-notes.png) |
+| ![Menu](../docs/screenshots/menu.png) | ![Live settings](../docs/screenshots/settings-live.png) |
+
+| Notes engines | Automation |
+|---|---|
+| ![Notes settings](../docs/screenshots/settings-notes.png) | ![Automation settings](../docs/screenshots/settings-automation.png) |
 
 | Processing | General |
 |---|---|
@@ -57,11 +63,7 @@ Screenshots are rendered straight from the real UI: `Recap --render-screenshots 
 
 ## Install
 
-Download `Recap.dmg` from the releases and drag Recap to Applications — or use Homebrew:
-
-```sh
-brew install --cask anhonestboy/tap/recap
-```
+Download `Recap.dmg` from the [releases](https://github.com/anhonestboy/Recap/releases) and drag Recap to Applications.
  On first launch macOS blocks unsigned apps: open **System Settings → Privacy & Security → Open Anyway** (one time only). To record calls you will also be asked for Screen & System Audio Recording and Microphone permissions.
 
 Or build from source:
@@ -78,7 +80,7 @@ The app icon is regenerated with `swift scripts/make_icon.swift Resources` (same
 
 ## Privacy
 
-Everything runs on your Mac: recording, transcription, compression and (by default) note generation. Nothing leaves the machine unless you explicitly select a cloud notes engine (Claude, OpenRouter, DeepSeek, custom) — in that case the transcript is sent to that provider, as stated in the settings. API keys are stored in the macOS Keychain.
+Recording, transcription, OCR, diarization and compression always run on your Mac. Text and images leave the machine only for the AI engine you choose: during a live session the transcript, your own notes and the screenshots go to it (Claude via your Claude Code login or the API; text-only engines receive OCR text instead of images); for file notes, the transcript goes to the selected notes engine. Pick "No AI" or Apple Intelligence to keep everything local. API keys are stored in the macOS Keychain.
 
 ## Project layout
 

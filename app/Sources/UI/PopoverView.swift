@@ -176,6 +176,10 @@ struct PopoverView: View {
     }
 
     private func detectTarget() async {
+        if ScreenshotRenderer.isRendering {
+            detectedTarget = String(localized: "It will capture: \(String(localized: "Window: \("zoom.us")\(" — Zoom Meeting")"))")
+            return
+        }
         guard !session.isActive, CGPreflightScreenCaptureAccess(),
               let target = try? await CaptureTargetResolver.resolve(AppSettings.liveCaptureTarget) else { return }
         detectedTarget = String(localized: "It will capture: \(target.description)")

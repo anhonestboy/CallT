@@ -5,8 +5,8 @@ import AppKit
 /// (leggero, niente framework: download del DMG, swap del bundle, riavvio).
 @MainActor
 enum UpdateChecker {
-    private static let releasesAPI = "https://api.github.com/repos/anhonestboy/CallT/releases/latest"
-    private static let releasesPage = "https://github.com/anhonestboy/CallT/releases/latest"
+    private static let releasesAPI = "https://api.github.com/repos/anhonestboy/Recap/releases/latest"
+    private static let releasesPage = "https://github.com/anhonestboy/Recap/releases/latest"
 
     static var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
@@ -81,7 +81,7 @@ enum UpdateChecker {
         let assets = obj["assets"] as? [[String: Any]] ?? []
         let dmgString = assets
             .first { ($0["name"] as? String)?.hasSuffix(".dmg") == true }?["browser_download_url"] as? String
-            ?? "https://github.com/anhonestboy/CallT/releases/download/\(tag)/Recap.dmg"
+            ?? "https://github.com/anhonestboy/Recap/releases/download/\(tag)/Recap.dmg"
         guard let dmg = URL(string: dmgString) else { return nil }
         return Update(version: remote, dmg: dmg)
     }

@@ -2,9 +2,11 @@
 
 *[English](README.md)*
 
-App macOS (menu bar) che registra, trascrive e riassume le tue call — tutto on-device per impostazione predefinita.
+App macOS (menu bar) che prende appunti delle tue call mentre succedono: trascrizione in tempo reale, screenshot di ciò che viene condiviso, brevi clip e note scritte dall'AI e aggiornate durante la riunione. Trascrizione e OCR girano sul Mac.
 
-Metti un video o un audio nella cartella osservata (o premi **Registra chiamata**) e Recap produce automaticamente trascrizione, note organizzate in Markdown e una copia compressa HEVC del video.
+Funziona anche a posteriori: metti un video o un audio nella cartella osservata e Recap produce trascrizione, note organizzate in Markdown e una copia compressa HEVC del video.
+
+*Fino alla versione 1.3.2 Recap si chiamava CallT. Al primo avvio importa impostazioni e cronologia di CallT; le chiavi API vengono riprese dal Portachiavi la prima volta che servono.*
 
 ## Sessione live
 
@@ -41,9 +43,13 @@ Collaudo senza call: `Recap --live-replay registrazione.mp4 [--speed 2] [--live-
 
 ## Screenshot
 
-| Menu | Motori delle note |
+| Menu | Impostazioni live |
 |---|---|
-| ![Menu](../docs/screenshots/menu.png) | ![Impostazioni note](../docs/screenshots/settings-notes.png) |
+| ![Menu](../docs/screenshots/menu.png) | ![Impostazioni live](../docs/screenshots/settings-live.png) |
+
+| Motori delle note | Automazione |
+|---|---|
+| ![Impostazioni note](../docs/screenshots/settings-notes.png) | ![Impostazioni automazione](../docs/screenshots/settings-automation.png) |
 
 | Elaborazione | Generale |
 |---|---|
@@ -57,11 +63,7 @@ Gli screenshot sono renderizzati direttamente dalla UI reale: `Recap --render-sc
 
 ## Installazione
 
-Scarica `Recap.dmg` dalle release e trascina Recap in Applicazioni — oppure usa Homebrew:
-
-```sh
-brew install --cask anhonestboy/tap/recap
-```
+Scarica `Recap.dmg` dalle [release](https://github.com/anhonestboy/Recap/releases) e trascina Recap in Applicazioni.
  Al primo avvio macOS blocca le app non firmate: **Impostazioni di Sistema → Privacy e Sicurezza → Apri comunque** (una sola volta). Per registrare le call verranno chiesti anche i permessi di Registrazione schermo/audio di sistema e Microfono.
 
 Oppure compila dai sorgenti:
@@ -78,7 +80,7 @@ L'icona si rigenera con `swift scripts/make_icon.swift Resources` (stesso glifo 
 
 ## Privacy
 
-Tutto gira sul tuo Mac: registrazione, trascrizione, compressione e (per impostazione predefinita) generazione delle note. Nulla lascia il computer a meno che tu non scelga esplicitamente un motore di note cloud (Claude, OpenRouter, DeepSeek, custom) — in quel caso la trascrizione viene inviata a quel provider, come indicato nelle impostazioni. Le chiavi API sono nel Portachiavi di macOS.
+Registrazione, trascrizione, OCR, diarizzazione e compressione girano sempre sul tuo Mac. Testo e immagini escono solo verso il motore AI che scegli: durante una sessione live gli arrivano trascrizione, note tue e screenshot (Claude con il login di Claude Code o con l'API; i motori solo-testo ricevono il testo OCR al posto delle immagini); per le note dei file, la trascrizione va al motore delle note scelto. Con "Nessuna AI" o Apple Intelligence resta tutto in locale. Le chiavi API sono nel Portachiavi di macOS.
 
 ## Crediti
 
