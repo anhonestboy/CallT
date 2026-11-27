@@ -6,11 +6,11 @@ cd "$(dirname "$0")/.."
 
 ./scripts/build.sh --universal
 
-rm -rf build.noindex/dmgroot build.noindex/CallT.dmg
+rm -rf build.noindex/dmgroot build.noindex/Recap.dmg
 mkdir -p build.noindex/dmgroot
-cp -R build.noindex/CallT.app build.noindex/dmgroot/
+cp -R build.noindex/Recap.app build.noindex/dmgroot/
 cp README.txt LEGGIMI.txt build.noindex/dmgroot/
 ln -s /Applications build.noindex/dmgroot/Applications
-hdiutil create -volname CallT -srcfolder build.noindex/dmgroot -ov -format UDZO build.noindex/CallT.dmg
+hdiutil create -volname Recap -srcfolder build.noindex/dmgroot -ov -format UDZO build.noindex/Recap.dmg
 rm -rf build.noindex/dmgroot
-echo "✅ DMG pronto: build.noindex/CallT.dmg"
+echo "✅ DMG pronto: build.noindex/Recap.dmg"

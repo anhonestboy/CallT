@@ -213,7 +213,7 @@ struct AppSettings {
     /// Cartella dati dell'app (registro, log).
     static var appSupportDir: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("CallT", isDirectory: true)
+            .appendingPathComponent("Recap", isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
         return base
     }

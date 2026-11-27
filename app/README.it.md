@@ -1,14 +1,14 @@
-# CallT
+# Recap
 
 *[English](README.md)*
 
 App macOS (menu bar) che registra, trascrive e riassume le tue call — tutto on-device per impostazione predefinita.
 
-Metti un video o un audio nella cartella osservata (o premi **Registra chiamata**) e CallT produce automaticamente trascrizione, note organizzate in Markdown e una copia compressa HEVC del video.
+Metti un video o un audio nella cartella osservata (o premi **Registra chiamata**) e Recap produce automaticamente trascrizione, note organizzate in Markdown e una copia compressa HEVC del video.
 
 ## Sessione live
 
-Avvia una sessione (**Avvia sessione live** o ⌥⌘R) all'inizio della call. CallT:
+Avvia una sessione (**Avvia sessione live** o ⌥⌘R) all'inizio della call. Recap:
 
 - **trascrive mentre parlate**, separando la tua voce ("Io", dal microfono) da quella degli altri ("Altri", dall'audio di sistema). A fine call la diarizzazione on-device distingue i singoli partecipanti;
 - **cattura la finestra della call** (Zoom, Teams, Meet nel browser…, oppure lo schermo col puntatore) e **salva da solo uno screenshot** quando lo schermo condiviso cambia: solo schermate con testo leggibile (slide, documenti, demo), con OCR on-device;
@@ -25,7 +25,7 @@ Scorciatoie: ⌥⌘R avvia/ferma · ⌃⌥N pannello · ⌃⌥S screenshot · �
 |---|---|
 | ![Pannello live](../docs/screenshots/live-panel.png) | ![Pannello compatto](../docs/screenshots/live-compact.png) |
 
-Collaudo senza call: `CallT --live-replay registrazione.mp4 [--speed 2] [--live-test-actions] [--quit-after-session]` rilegge un file come se fosse una call in corso.
+Collaudo senza call: `Recap --live-replay registrazione.mp4 [--speed 2] [--live-test-actions] [--quit-after-session]` rilegge un file come se fosse una call in corso.
 
 ## Funzionalità
 
@@ -49,7 +49,7 @@ Collaudo senza call: `CallT --live-replay registrazione.mp4 [--speed 2] [--live-
 |---|---|
 | ![Impostazioni elaborazione](../docs/screenshots/settings-processing.png) | ![Impostazioni generale](../docs/screenshots/settings-general.png) |
 
-Gli screenshot sono renderizzati direttamente dalla UI reale: `CallT --render-screenshots <dir>`.
+Gli screenshot sono renderizzati direttamente dalla UI reale: `Recap --render-screenshots <dir>`.
 
 ## Requisiti
 
@@ -57,22 +57,22 @@ Gli screenshot sono renderizzati direttamente dalla UI reale: `CallT --render-sc
 
 ## Installazione
 
-Scarica `CallT.dmg` dalle release e trascina CallT in Applicazioni — oppure usa Homebrew:
+Scarica `Recap.dmg` dalle release e trascina Recap in Applicazioni — oppure usa Homebrew:
 
 ```sh
-brew install --cask anhonestboy/tap/callt
+brew install --cask anhonestboy/tap/recap
 ```
  Al primo avvio macOS blocca le app non firmate: **Impostazioni di Sistema → Privacy e Sicurezza → Apri comunque** (una sola volta). Per registrare le call verranno chiesti anche i permessi di Registrazione schermo/audio di sistema e Microfono.
 
 Oppure compila dai sorgenti:
 
 ```sh
-scripts/build.sh              # build arm64 → build.noindex/CallT.app
+scripts/build.sh              # build arm64 → build.noindex/Recap.app
 scripts/build.sh --universal  # arm64 + x86_64
-scripts/package.sh            # build universale + build.noindex/CallT.dmg distribuibile
+scripts/package.sh            # build universale + build.noindex/Recap.dmg distribuibile
 ```
 
-La build è una pipeline `swiftc` manuale (compila, impacchetta, estrae i metadati App Intents con `appintentsmetadataprocessor`, firma ad-hoc): non richiede `xcodebuild`. Per lavorare in Xcode, `xcodegen generate` (richiede `brew install xcodegen`) produce `CallT.xcodeproj` da `project.yml`.
+La build è una pipeline `swiftc` manuale (compila, impacchetta, estrae i metadati App Intents con `appintentsmetadataprocessor`, firma ad-hoc): non richiede `xcodebuild`. Per lavorare in Xcode, `xcodegen generate` (richiede `brew install xcodegen`) produce `Recap.xcodeproj` da `project.yml`.
 
 L'icona si rigenera con `swift scripts/make_icon.swift Resources` (stesso glifo SF "waveform" della menu bar).
 
@@ -84,7 +84,7 @@ Tutto gira sul tuo Mac: registrazione, trascrizione, compressione e (per imposta
 
 Creato da **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
 
-Costruito con [Claude Code](https://claude.com/claude-code) (Anthropic). CallT poggia su ottime spalle:
+Costruito con [Claude Code](https://claude.com/claude-code) (Anthropic). Recap poggia su ottime spalle:
 
 - **Framework Apple** — ScreenCaptureKit (registrazione), Speech/SpeechAnalyzer (trascrizione), FoundationModels/Apple Intelligence (note on-device), AVFoundation (elaborazione audio/video), App Intents (Comandi Rapidi)
 - **[FluidAudio](https://github.com/FluidInference/FluidAudio)** (Apache-2.0) — diarizzazione on-device

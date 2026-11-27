@@ -24,10 +24,11 @@ final class AppState: ObservableObject {
     // MARK: - Avvio
 
     func onLaunch() {
+        LegacyMigration.run()
         AppSettings.registerDefaults()
         Notifier.setup()
         HotKeyManager.shared.register()
-        appLog("CallT started")
+        appLog("Recap started")
         refreshRecents()
         UpdateChecker.autoCheck()
         // La coda di elaborazione non deve mai girare mentre si registra:

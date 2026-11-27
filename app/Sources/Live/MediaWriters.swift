@@ -22,7 +22,7 @@ final class MediaFileWriter: @unchecked Sendable {
 
     init(url: URL, videoSize: CGSize?, withMic: Bool, fps: Int = 10, queue: DispatchQueue? = nil) throws {
         self.url = url
-        self.queue = queue ?? DispatchQueue(label: "com.werootbox.callt.writer.\(url.lastPathComponent)")
+        self.queue = queue ?? DispatchQueue(label: "com.werootbox.recap.writer.\(url.lastPathComponent)")
         try? FileManager.default.removeItem(at: url)
         writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
         writer.shouldOptimizeForNetworkUse = false
@@ -134,7 +134,7 @@ final class ClipRingBuffer: @unchecked Sendable {
     private let fps: Int
     private let segmentSeconds: Double = 10
     private let keepSeconds: Double
-    private let queue = DispatchQueue(label: "com.werootbox.callt.live.clips")
+    private let queue = DispatchQueue(label: "com.werootbox.recap.live.clips")
     private var current: MediaFileWriter?
     private var currentStart: Double = 0
     private var segments: [Segment] = []

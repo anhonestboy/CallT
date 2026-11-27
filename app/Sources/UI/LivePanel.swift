@@ -7,7 +7,7 @@ import Combine
 /// - espansa: note live, trascrizione, catture e una chat per fare domande o
 ///   aggiungere note tue.
 /// Si nasconde (⌃⌥N o dal menu) senza fermare nulla, e si nasconde da solo
-/// quando condividi lo schermo. È esclusa dalle catture di CallT stessa.
+/// quando condividi lo schermo. È esclusa dalle catture di Recap stessa.
 @MainActor
 final class LivePanelController: ObservableObject {
     static let shared = LivePanelController()

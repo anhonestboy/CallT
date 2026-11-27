@@ -2,13 +2,13 @@ import Foundation
 import AppKit
 
 /// Si accorge (in modo euristico) di quando stai condividendo lo schermo, così
-/// il pannello di CallT si nasconde da solo e ricompare alla fine.
+/// il pannello di Recap si nasconde da solo e ricompare alla fine.
 ///
 /// macOS non espone un'API "c'è una condivisione in corso": le app di call
 /// però mostrano finestre riconoscibili (la barra "meet.google.com sta
 /// condividendo il tuo schermo", la toolbar di condivisione di Zoom/Teams).
 /// Leggere i titoli delle finestre richiede il permesso di registrazione
-/// schermo, che CallT ha già.
+/// schermo, che Recap ha già.
 @MainActor
 final class ScreenShareWatcher: ObservableObject {
     static let shared = ScreenShareWatcher()
@@ -27,7 +27,7 @@ final class ScreenShareWatcher: ObservableObject {
         "zoom share", "share toolbar", "sharing toolbar", "screen sharing",
         "condivisione schermo", "you are presenting", "stai presentando",
     ]
-    private static let ignoredOwners: Set<String> = ["CallT", "Window Server", "Dock", "Control Center"]
+    private static let ignoredOwners: Set<String> = ["Recap", "Window Server", "Dock", "Control Center"]
 
     func start() {
         stop()

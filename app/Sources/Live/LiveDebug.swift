@@ -4,7 +4,7 @@ import ScreenCaptureKit
 
 /// Collaudo della modalità live senza una call vera:
 ///
-///   CallT --live-replay <file> [--speed 1] [--live-test-actions] [--render-ui <dir>] [--quit-after-session]
+///   Recap --live-replay <file> [--speed 1] [--live-test-actions] [--render-ui <dir>] [--quit-after-session]
 ///
 /// `--live-test-actions` esegue durante il replay screenshot, clip, momento
 /// segnato, nota e domanda; `--render-ui` salva PNG della UI reale (popover e
@@ -61,7 +61,7 @@ enum LiveDebug {
     }
 
     /// Fotografa il pannello vero (vetro incluso) sopra uno sfondo creato qui:
-    /// la cattura include solo le finestre di CallT, mai il resto dello schermo.
+    /// la cattura include solo le finestre di Recap, mai il resto dello schermo.
     private static func renderGlass(into dir: URL) async {
         let controller = LivePanelController.shared
         for (expanded, tab, name) in [(false, LivePanelTab.notes, "glass-compact"),

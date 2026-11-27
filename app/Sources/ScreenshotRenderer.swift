@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-/// Hidden tool: `CallT --render-screenshots <dir>` renders the real UI
+/// Hidden tool: `Recap --render-screenshots <dir>` renders the real UI
 /// offscreen into PNGs for the README, then exits. Keeps repo screenshots
 /// authentic and reproducible on every release.
 private final class KeyableWindow: NSWindow {
@@ -60,7 +60,7 @@ enum ScreenshotRenderer {
                     .frame(width: 148, height: 148)
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text(verbatim: "CallT")
+                Text(verbatim: "Recap")
                     .font(.system(size: 56, weight: .bold, design: .rounded))
                 Text(verbatim: "Record · Transcribe · Summarize — on-device")
                     .font(.system(size: 21, weight: .medium))

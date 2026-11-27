@@ -2,7 +2,7 @@
 .venv/
 app/build.noindex/
 app/build/
-app/CallT.xcodeproj/
+app/Recap.xcodeproj/
 *.xcuserstate
 DerivedData/
 app/tools/diarizer/.build/

@@ -23,7 +23,7 @@ struct TranscribeVideoIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<IntentFile> & ProvidesDialog {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("callt-intent-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("recap-intent-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
@@ -67,7 +67,7 @@ struct TranscribeVideoIntent: AppIntent {
     }
 }
 
-struct CallTShortcuts: AppShortcutsProvider {
+struct RecapShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: TranscribeVideoIntent(),

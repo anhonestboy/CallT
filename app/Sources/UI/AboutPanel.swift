@@ -1,6 +1,6 @@
 import AppKit
 
-/// Pannello "Informazioni su CallT" standard con crediti.
+/// Pannello "Informazioni su Recap" standard con crediti.
 @MainActor
 enum AboutPanel {
     static func show() {

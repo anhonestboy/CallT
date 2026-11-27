@@ -5,7 +5,7 @@ import UserNotifications
 /// Notifiche di sistema con azioni rapide (Apri note / Apri trascrizione).
 /// Se l'autorizzazione manca, degrada in silenzio.
 enum Notifier {
-    private static let categoryID = "com.werootbox.callt.job"
+    private static let categoryID = "com.werootbox.recap.job"
 
     static func setup() {
         let center = UNUserNotificationCenter.current()

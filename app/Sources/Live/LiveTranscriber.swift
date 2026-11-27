@@ -17,7 +17,7 @@ final class LiveTranscriber: @unchecked Sendable {
 
     let speaker: Speaker
     private let onUpdate: @Sendable (Update) -> Void
-    private let queue = DispatchQueue(label: "com.werootbox.callt.live.transcriber")
+    private let queue = DispatchQueue(label: "com.werootbox.recap.live.transcriber")
 
     private var analyzer: SpeechAnalyzer?
     private var transcriber: SpeechTranscriber?

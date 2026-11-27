@@ -172,7 +172,7 @@ final class LiveSession: ObservableObject {
                 router.frames = analyzer
                 let clips = ClipRingBuffer(
                     dir: FileManager.default.temporaryDirectory
-                        .appendingPathComponent("callt-clips-\(UUID().uuidString)"),
+                        .appendingPathComponent("recap-clips-\(UUID().uuidString)"),
                     videoSize: source.videoSize, withMic: true, fps: fps,
                     maxPreRoll: Double(AppSettings.liveClipBefore))
                 clipBuffer = clips
@@ -236,7 +236,7 @@ final class LiveSession: ObservableObject {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Screen recording permission required")
-        alert.informativeText = String(localized: "To record calls, CallT needs permission to capture the screen and system audio. Enable CallT in System Settings → Privacy & Security → Screen & System Audio Recording, then try again.")
+        alert.informativeText = String(localized: "To record calls, Recap needs permission to capture the screen and system audio. Enable Recap in System Settings → Privacy & Security → Screen & System Audio Recording, then try again.")
         alert.addButton(withTitle: String(localized: "Open System Settings"))
         alert.addButton(withTitle: String(localized: "Cancel"))
         if alert.runModal() == .alertFirstButtonReturn {
@@ -774,7 +774,7 @@ final class MediaRouter: @unchecked Sendable {
     var clips: ClipRingBuffer?
     var recording: MediaFileWriter?
     var origin: CMTime = .zero
-    private let tapQueue = DispatchQueue(label: "com.werootbox.callt.live.tap")
+    private let tapQueue = DispatchQueue(label: "com.werootbox.recap.live.tap")
     private var detached = false
     private var _lastTime: Double = 0
     private var _lastVideoPTS: Double = 0

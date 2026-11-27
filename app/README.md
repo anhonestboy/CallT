@@ -1,14 +1,14 @@
-# CallT
+# Recap
 
 *[Italiano](README.it.md)*
 
 A macOS menu bar app that records, transcribes and summarizes your calls — entirely on-device by default.
 
-Drop a video or audio file into a watched folder (or hit **Record call**) and CallT automatically produces a transcript, organized Markdown notes, and an HEVC-compressed copy of the video.
+Drop a video or audio file into a watched folder (or hit **Record call**) and Recap automatically produces a transcript, organized Markdown notes, and an HEVC-compressed copy of the video.
 
 ## Live session
 
-Start a session (**Start live session** or ⌥⌘R) when the call begins. CallT:
+Start a session (**Start live session** or ⌥⌘R) when the call begins. Recap:
 
 - **transcribes while you talk**, keeping your voice ("Me", from the microphone) apart from everyone else ("Others", from system audio); on-device diarization tells the other participants apart at the end;
 - **captures the call window** (Zoom, Teams, Meet in the browser…, or the screen under the pointer) and **takes a screenshot by itself** whenever the shared screen changes — only screens with readable text (slides, documents, demos), with on-device OCR;
@@ -25,7 +25,7 @@ Shortcuts: ⌥⌘R start/stop · ⌃⌥N panel · ⌃⌥S screenshot · ⌃⌥C 
 |---|---|
 | ![Live panel](../docs/screenshots/live-panel.png) | ![Compact panel](../docs/screenshots/live-compact.png) |
 
-Testing without a call: `CallT --live-replay recording.mp4 [--speed 2] [--live-test-actions] [--quit-after-session]` replays a file as if it were a call in progress.
+Testing without a call: `Recap --live-replay recording.mp4 [--speed 2] [--live-test-actions] [--quit-after-session]` replays a file as if it were a call in progress.
 
 ## Features
 
@@ -49,7 +49,7 @@ Testing without a call: `CallT --live-replay recording.mp4 [--speed 2] [--live-t
 |---|---|
 | ![Processing settings](../docs/screenshots/settings-processing.png) | ![General settings](../docs/screenshots/settings-general.png) |
 
-Screenshots are rendered straight from the real UI: `CallT --render-screenshots <dir>`.
+Screenshots are rendered straight from the real UI: `Recap --render-screenshots <dir>`.
 
 ## Requirements
 
@@ -57,22 +57,22 @@ Screenshots are rendered straight from the real UI: `CallT --render-screenshots 
 
 ## Install
 
-Download `CallT.dmg` from the releases and drag CallT to Applications — or use Homebrew:
+Download `Recap.dmg` from the releases and drag Recap to Applications — or use Homebrew:
 
 ```sh
-brew install --cask anhonestboy/tap/callt
+brew install --cask anhonestboy/tap/recap
 ```
  On first launch macOS blocks unsigned apps: open **System Settings → Privacy & Security → Open Anyway** (one time only). To record calls you will also be asked for Screen & System Audio Recording and Microphone permissions.
 
 Or build from source:
 
 ```sh
-scripts/build.sh              # arm64 build → build.noindex/CallT.app
+scripts/build.sh              # arm64 build → build.noindex/Recap.app
 scripts/build.sh --universal  # arm64 + x86_64
-scripts/package.sh            # universal build + distributable build.noindex/CallT.dmg
+scripts/package.sh            # universal build + distributable build.noindex/Recap.dmg
 ```
 
-The build is a manual `swiftc` pipeline (compile, bundle, extract App Intents metadata with `appintentsmetadataprocessor`, ad-hoc sign): it does not require `xcodebuild`. To work in Xcode, `xcodegen generate` (requires `brew install xcodegen`) produces `CallT.xcodeproj` from `project.yml`.
+The build is a manual `swiftc` pipeline (compile, bundle, extract App Intents metadata with `appintentsmetadataprocessor`, ad-hoc sign): it does not require `xcodebuild`. To work in Xcode, `xcodegen generate` (requires `brew install xcodegen`) produces `Recap.xcodeproj` from `project.yml`.
 
 The app icon is regenerated with `swift scripts/make_icon.swift Resources` (same SF "waveform" glyph used in the menu bar).
 
@@ -84,7 +84,7 @@ Everything runs on your Mac: recording, transcription, compression and (by defau
 
 ```
 Sources/
-  CallTApp.swift            entry point (MenuBarExtra + Settings scene)
+  RecapApp.swift            entry point (MenuBarExtra + Settings scene)
   AppState.swift            central state, serial queue, folder monitoring
   Pipeline.swift            orchestration: audio → transcript → notes → compression → delivery
   Settings.swift            UserDefaults keys/values
@@ -111,7 +111,7 @@ scripts/                    build.sh, package.sh, make_icon.swift
 
 Created by **Maurizio Palumbo** ([werootbox](mailto:hello@werootbox.com)).
 
-Built with [Claude Code](https://claude.com/claude-code) (Anthropic). CallT stands on excellent shoulders:
+Built with [Claude Code](https://claude.com/claude-code) (Anthropic). Recap stands on excellent shoulders:
 
 - **Apple frameworks** — ScreenCaptureKit (recording), Speech/SpeechAnalyzer (transcription), FoundationModels/Apple Intelligence (on-device notes), AVFoundation (audio/video processing), App Intents (Shortcuts)
 - **[FluidAudio](https://github.com/FluidInference/FluidAudio)** (Apache-2.0) — on-device speaker diarization

@@ -46,7 +46,7 @@ struct PopoverView: View {
             Image(systemName: "waveform")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
-            Text(verbatim: "CallT").font(.title3.weight(.semibold))
+            Text(verbatim: "Recap").font(.title3.weight(.semibold))
             Spacer()
             Toggle(isOn: Binding(
                 get: { state.isMonitoring },
@@ -337,10 +337,10 @@ struct PopoverView: View {
             }
             .buttonStyle(.borderless)
             .help(String(localized: "Settings…"))
-            RowIconButton("info.circle", help: String(localized: "About CallT")) {
+            RowIconButton("info.circle", help: String(localized: "About Recap")) {
                 AboutPanel.show()
             }
-            RowIconButton("power", help: String(localized: "Quit CallT")) {
+            RowIconButton("power", help: String(localized: "Quit Recap")) {
                 state.quit()
             }
         }

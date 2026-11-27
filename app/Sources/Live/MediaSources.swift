@@ -37,8 +37,8 @@ final class ScreenCaptureSource: NSObject, LiveMediaSource, SCStreamOutput, SCSt
     private let wantsMic: Bool
     private let fps: Int
     private let handlers: MediaHandlers
-    private let videoQueue = DispatchQueue(label: "com.werootbox.callt.live.video")
-    private let audioQueue = DispatchQueue(label: "com.werootbox.callt.live.audio")
+    private let videoQueue = DispatchQueue(label: "com.werootbox.recap.live.video")
+    private let audioQueue = DispatchQueue(label: "com.werootbox.recap.live.audio")
     private var stream: SCStream?
     private var mic: MicCapture?
     private var repeatTimer: DispatchSourceTimer?
@@ -191,7 +191,7 @@ final class ScreenCaptureSource: NSObject, LiveMediaSource, SCStreamOutput, SCSt
 
 /// Rilegge una registrazione esistente come se fosse una call in corso, a
 /// velocità reale o accelerata. La prima traccia audio fa da "altri", la
-/// seconda (se c'è, come nelle registrazioni di CallT) da "io".
+/// seconda (se c'è, come nelle registrazioni di Recap) da "io".
 /// Serve a collaudare la modalità live senza essere in call.
 final class FileReplaySource: LiveMediaSource, @unchecked Sendable {
     let origin: CMTime = .zero

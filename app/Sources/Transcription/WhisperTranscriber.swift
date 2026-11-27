@@ -36,7 +36,7 @@ struct WhisperTranscriber: TranscriptionEngine {
         // Output in una cartella temporanea: mai accanto al file dell'utente
         // (il percorso Intent può passare un file fuori dalle nostre cartelle).
         let scratch = FileManager.default.temporaryDirectory
-            .appendingPathComponent("callt-whisper-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("recap-whisper-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: scratch) }
         let outBase = scratch.appendingPathComponent("out")

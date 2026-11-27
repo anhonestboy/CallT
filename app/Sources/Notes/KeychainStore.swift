@@ -3,9 +3,20 @@ import Security
 
 /// Archiviazione della chiave API nel Portachiavi (mai in UserDefaults in chiaro).
 enum KeychainStore {
-    private static let service = "com.werootbox.callt"
+    private static let service = "com.werootbox.recap"
+
+    /// Servizio usato quando l'app si chiamava CallT.
+    private static let legacyService = LegacyMigration.legacyBundleID
 
     static func read(_ account: String) -> String? {
+        if let value = read(account, service: service) { return value }
+        // Chiave salvata da CallT: la copia sotto il nuovo nome e la usa.
+        guard let legacy = read(account, service: legacyService) else { return nil }
+        write(legacy, account: account)
+        return legacy
+    }
+
+    private static func read(_ account: String, service: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

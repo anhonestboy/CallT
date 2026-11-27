@@ -60,7 +60,7 @@ private struct OnboardingView: View {
                         .frame(width: 6, height: 6)
                 }
                 Spacer()
-                Button(step == 2 ? String(localized: "Start using CallT") : String(localized: "Continue")) {
+                Button(step == 2 ? String(localized: "Start using Recap") : String(localized: "Continue")) {
                     if step == 2 {
                         AppState.shared.startMonitoring()
                         finish()
@@ -85,7 +85,7 @@ private struct OnboardingView: View {
                 if let icon = NSApp.applicationIconImage {
                     Image(nsImage: icon).resizable().frame(width: 84, height: 84)
                 }
-                Text(verbatim: "CallT")
+                Text(verbatim: "Recap")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                 Text("Record, transcribe and summarize your calls — on-device.")
                     .font(.title3)
@@ -109,7 +109,7 @@ private struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Permissions")
                     .font(.title2.weight(.semibold))
-                Text("CallT works entirely on your Mac. To record calls it needs these permissions — you can also grant them later, when you first hit Record.")
+                Text("Recap works entirely on your Mac. To record calls it needs these permissions — you can also grant them later, when you first hit Record.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -124,7 +124,7 @@ private struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Call notes")
                     .font(.title2.weight(.semibold))
-                Text("After each transcription CallT writes organized Markdown notes: summary, topics, decisions, action items — with speakers identified. By default it uses Apple Intelligence on-device (free, private). You can switch to Claude, OpenRouter, DeepSeek or Ollama in Settings → Notes.")
+                Text("After each transcription Recap writes organized Markdown notes: summary, topics, decisions, action items — with speakers identified. By default it uses Apple Intelligence on-device (free, private). You can switch to Claude, OpenRouter, DeepSeek or Ollama in Settings → Notes.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

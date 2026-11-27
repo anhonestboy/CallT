@@ -4,7 +4,7 @@ import ScreenCaptureKit
 
 /// Cosa catturare per gli screenshot e le clip. Di default cerca la finestra
 /// della call (Zoom, Teams, Meet nel browser…): catturare solo quella evita
-/// notifiche, altri monitor e il pannello di CallT, e funziona anche se la
+/// notifiche, altri monitor e il pannello di Recap, e funziona anche se la
 /// finestra è parzialmente coperta.
 enum CaptureTargetChoice: String, CaseIterable, Identifiable {
     case auto          // finestra della call, altrimenti lo schermo col puntatore

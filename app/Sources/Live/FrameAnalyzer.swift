@@ -40,7 +40,7 @@ final class FrameAnalyzer: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "com.werootbox.callt.live.frames", qos: .utility)
+    private let queue = DispatchQueue(label: "com.werootbox.recap.live.frames", qos: .utility)
     private let context = CIContext(options: [.cacheIntermediates: false])
     private let onShot: @Sendable (Shot) -> Void
     var autoEnabled: Bool
