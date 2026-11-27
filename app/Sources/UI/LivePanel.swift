@@ -87,7 +87,7 @@ final class LivePanelController: ObservableObject {
         host.sizingOptions = []
         let panel = LivePanelWindow(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 64),
-            styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless, .resizable],
+            styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
             backing: .buffered, defer: false)
         panel.contentView = host
         panel.level = .floating
@@ -115,9 +115,13 @@ final class LivePanelController: ObservableObject {
             let w = AppSettings.defaults.double(forKey: "livePanelWidth")
             let h = AppSettings.defaults.double(forKey: "livePanelHeight")
             size = NSSize(width: w > 300 ? w : expandedDefault.width, height: h > 300 ? h : expandedDefault.height)
+            panel.styleMask.insert(.resizable)
             panel.minSize = NSSize(width: 360, height: 360)
             panel.maxSize = NSSize(width: 1200, height: 2000)
         } else {
+            // La barra compatta si adatta al contenuto: niente bordi da
+            // trascinare né cursore di ridimensionamento.
+            panel.styleMask.remove(.resizable)
             let fitting = host.fittingSize
             size = NSSize(width: max(fitting.width, 300), height: max(fitting.height, 52))
             panel.minSize = size
