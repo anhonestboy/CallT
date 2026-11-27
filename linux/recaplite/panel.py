@@ -49,10 +49,14 @@ def close_panel() -> bool:
     return True
 
 
-def minimize() -> None:
-    """Chiude la finestra e mostra la pillola compatta sotto la barra."""
+def minimize() -> bool:
+    """Mostra la pillola compatta sotto la barra e chiude la finestra.
+    Se la pillola non compare (Quickshell assente o in errore) la finestra resta aperta:
+    non si resta mai senza un modo per tornare al pannello."""
+    if not qs_call("mini", "show"):
+        return False
     close_panel()
-    qs_call("mini", "show")
+    return True
 
 
 def hide() -> None:

@@ -129,13 +129,25 @@ def cmd_toggle(args, cfg: Config) -> int:
     return cmd_start(args, cfg)
 
 
+def cmd_show(args, cfg: Config) -> int:
+    """Clic destro sulla voce in barra: riapre il pannello; senza sessione ne avvia una. Non ferma mai."""
+    state = _state()
+    if state and state["phase"] in ("starting", "live", "finishing"):
+        open_panel(cfg)
+        return 0
+    args.title, args.replay, args.speed, args.no_panel = None, None, 1.0, False
+    return cmd_start(args, cfg)
+
+
 def cmd_panel(args, cfg: Config) -> int:
     if args.hide:
         panel_mod.hide()
         return 0
     if args.mini:
-        minimize()
-        return 0
+        if minimize():
+            return 0
+        print("La pillola non si apre (Quickshell): prova `qs -c recap` per vedere l'errore.", file=sys.stderr)
+        return 1
     if not args.show and close_panel():
         return 0
     if not _state():
@@ -160,13 +172,14 @@ def cmd_status(args, cfg: Config) -> int:
     if args.waybar:
         # Sempre visibile, come l'icona di Recap nella barra dei menu del Mac.
         if not state or state["phase"] == "done":
-            print(json.dumps({"text": ICON, "class": "idle", "tooltip": "Recap — clic per il menu"},
+            print(json.dumps({"text": ICON, "class": "idle", "tooltip": "Recap — clic: menu · clic destro: avvia"},
                              ensure_ascii=False))
         else:
             minutes, seconds = divmod(int(state["elapsed"]), 60)
             text = {"live": f"{ICON} ● {minutes:02d}:{seconds:02d}", "finishing": f"{ICON} note…",
                     "starting": f"{ICON} …", "failed": f"{ICON} ⚠"}.get(state["phase"], ICON)
-            tooltip = f"Recap — {state['name']}\n{state['lineCount']} frasi · {state['engine']}"
+            tooltip = (f"Recap — {state['name']}\n{state['lineCount']} frasi · {state['engine']}\n"
+                       "clic: menu · clic destro: pannello · clic centrale: pillola")
             print(json.dumps({"text": text, "class": state["phase"], "tooltip": tooltip}, ensure_ascii=False))
         return 0
     if not state:
@@ -308,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--no-panel", action="store_true")
     sub.add_parser("stop")
     sub.add_parser("toggle")
+    sub.add_parser("show")
     panel_parser = sub.add_parser("panel")
     group = panel_parser.add_mutually_exclusive_group()
     group.add_argument("--show", action="store_true", help="apre (o porta in primo piano)")
@@ -330,7 +344,7 @@ def main(argv: list[str] | None = None) -> int:
     cfg = Config.load()
     cfg.save_default()
     handlers = {
-        "start": cmd_start, "serve": cmd_serve, "stop": cmd_stop, "toggle": cmd_toggle,
+        "start": cmd_start, "serve": cmd_serve, "stop": cmd_stop, "toggle": cmd_toggle, "show": cmd_show,
         "panel": cmd_panel, "status": cmd_status, "check": cmd_check, "recent": cmd_recent,
         "stop-async": cmd_stop_async, "menu": cmd_menu,
         "mark": cmd_simple("mark"), "note": cmd_simple("note"), "ask": cmd_simple("ask"),

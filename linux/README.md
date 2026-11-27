@@ -30,7 +30,7 @@ Con `--hypr`:
 - copia `hypr/recap.lua` in `~/.config/hypr/` e aggiunge `pcall(require, "recap")` a `hyprland.lua` (con backup);
 - installa il **menu flottante** (Quickshell, `~/.config/quickshell/recap`) e aggiunge la **voce nella barra** di waybar (`custom/recap`, primo dei moduli di destra; backup `config.jsonc.bak-recap`).
 
-Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante la call diventa rossa con il timer. **Clic** apre il menu sotto l'icona (avvia/ferma, pannello, segna il momento, call recenti, cartella, impostazioni). Si chiude cliccando fuori o con Esc. **Clic destro** avvia o ferma, **clic centrale** mostra il pannello. Colori dallo sfondo (matugen) e suoni degli extras, come il resto del desktop.
+Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante la call diventa rossa con il timer. **Clic** apre il menu sotto l'icona (avvia/ferma, pannello, segna il momento, call recenti, cartella, impostazioni). Si chiude cliccando fuori o con Esc. **Clic destro** riapre il pannello (senza call ne avvia una), **clic centrale** riduce a pillola. Nessun clic sulla barra ferma la call: si ferma dal menu, dal pannello, dalla pillola o con Super+Alt+C. Colori dallo sfondo (matugen) e suoni degli extras, come il resto del desktop.
 
 | Scorciatoia | Azione |
 |---|---|
@@ -40,8 +40,8 @@ Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante l
 | Super+Alt+M | segna il momento ⭐ |
 
 Il pannello si apre in alto a destra, flottante, fissato su tutti i workspace e leggermente trasparente. Nell'intestazione, come sul Mac:
-- **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, "espandi" e stop. A call conclusa la pillola offre le note e poi si chiude.
-- **Nascondi** lo chiude e basta: la call continua, lo riapri dal menu nella barra, con il clic centrale sull'icona o con Super+Alt+N.
+- **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, **Apri** e stop. Clic sul timer o su Apri riapre il pannello; lo stop chiede conferma ("Ferma?", secondo clic entro 3 secondi). A call conclusa la pillola offre le note e poi si chiude. Se la pillola non può comparire (Quickshell non risponde) il pannello resta aperto.
+- **Nascondi** lo chiude e basta: la call continua, lo riapri da "Pannello" nel menu, con il clic destro sull'icona o con Super+Alt+N.
 
 Se usi un'altra barra, la voce si aggiunge a mano (`waybar_patch.py` mostra il modulo): `recap-lite status --waybar` per il testo, `recap-lite menu` al clic.
 

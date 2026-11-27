@@ -26,13 +26,21 @@ if '"custom/recap"' not in text:
         "return-type": "json",
         "interval": 1,
         "on-click": "recap-lite menu",
-        "on-click-right": "recap-lite toggle",
-        "on-click-middle": "recap-lite panel"
+        "on-click-right": "recap-lite show",
+        "on-click-middle": "recap-lite panel --mini"
     },'''
     end = re.search(r'"modules-right"\s*:\s*\[[^\]]*\]\s*,', text)
     text = text[:end.end()] + module + text[end.end():]
     config.write_text(text)
     print(f"waybar: voce Recap aggiunta a {config.name} (backup .bak-recap)")
+else:
+    # Versioni precedenti: il clic destro fermava la call. Ora riapre il pannello (o avvia).
+    old = text
+    text = text.replace('"on-click-right": "recap-lite toggle"', '"on-click-right": "recap-lite show"')
+    text = text.replace('"on-click-middle": "recap-lite panel"', '"on-click-middle": "recap-lite panel --mini"')
+    if text != old:
+        config.write_text(text)
+        print(f"waybar: clic della voce Recap aggiornati in {config.name}")
 
 style = root / "style.css"
 if style.exists() and "#custom-recap" not in style.read_text():
