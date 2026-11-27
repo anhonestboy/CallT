@@ -212,8 +212,8 @@ enum VideoCompressor {
 
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             let group = DispatchGroup()
-            let videoQueue = DispatchQueue(label: "com.werootbox.callt.pump.video")
-            let audioQueue = DispatchQueue(label: "com.werootbox.callt.pump.audio")
+            let videoQueue = DispatchQueue(label: "com.werootbox.recap.pump.video")
+            let audioQueue = DispatchQueue(label: "com.werootbox.recap.pump.audio")
 
             let videoState = LaneState()
             group.enter()

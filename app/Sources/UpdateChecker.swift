@@ -5,8 +5,8 @@ import AppKit
 /// (leggero, niente framework: download del DMG, swap del bundle, riavvio).
 @MainActor
 enum UpdateChecker {
-    private static let releasesAPI = "https://api.github.com/repos/anhonestboy/CallT/releases/latest"
-    private static let releasesPage = "https://github.com/anhonestboy/CallT/releases/latest"
+    private static let releasesAPI = "https://api.github.com/repos/anhonestboy/Recap/releases/latest"
+    private static let releasesPage = "https://github.com/anhonestboy/Recap/releases/latest"
 
     static var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
@@ -20,7 +20,7 @@ enum UpdateChecker {
         Task {
             if let update = try? await latestNewerVersion() {
                 Notifier.notify(
-                    title: String(localized: "CallT \(update.version) is available"),
+                    title: String(localized: "Recap \(update.version) is available"),
                     body: String(localized: "Choose “Check for updates” in Settings → General to install it."))
                 appLog("⬆️ Update available: \(update.version)")
             }
@@ -32,8 +32,8 @@ enum UpdateChecker {
         do {
             if let update = try await latestNewerVersion() {
                 let alert = NSAlert()
-                alert.messageText = String(localized: "CallT \(update.version) is available")
-                alert.informativeText = String(localized: "You are on \(currentVersion). CallT can install the update and relaunch automatically.")
+                alert.messageText = String(localized: "Recap \(update.version) is available")
+                alert.informativeText = String(localized: "You are on \(currentVersion). Recap can install the update and relaunch automatically.")
                 alert.addButton(withTitle: String(localized: "Install and relaunch"))
                 alert.addButton(withTitle: String(localized: "Later"))
                 NSApp.activate(ignoringOtherApps: true)
@@ -42,7 +42,7 @@ enum UpdateChecker {
             } else {
                 let alert = NSAlert()
                 alert.messageText = String(localized: "You're up to date")
-                alert.informativeText = String(localized: "CallT \(currentVersion) is the latest version.")
+                alert.informativeText = String(localized: "Recap \(currentVersion) is the latest version.")
                 alert.addButton(withTitle: "OK")
                 NSApp.activate(ignoringOtherApps: true)
                 alert.runModal()
@@ -81,7 +81,7 @@ enum UpdateChecker {
         let assets = obj["assets"] as? [[String: Any]] ?? []
         let dmgString = assets
             .first { ($0["name"] as? String)?.hasSuffix(".dmg") == true }?["browser_download_url"] as? String
-            ?? "https://github.com/anhonestboy/CallT/releases/download/\(tag)/CallT.dmg"
+            ?? "https://github.com/anhonestboy/Recap/releases/download/\(tag)/Recap.dmg"
         guard let dmg = URL(string: dmgString) else { return nil }
         return Update(version: remote, dmg: dmg)
     }
@@ -90,20 +90,20 @@ enum UpdateChecker {
     /// (con ripristino in caso di errore) e riavvia.
     private static func installAndRelaunch(_ update: Update) async throws {
         let fm = FileManager.default
-        appLog("⬇️ Downloading CallT \(update.version)…")
+        appLog("⬇️ Downloading Recap \(update.version)…")
         let (downloaded, response) = try await URLSession.shared.download(from: update.dmg)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
             throw TranscriptionError(message: "download failed (HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0))")
         }
 
-        let work = fm.temporaryDirectory.appendingPathComponent("callt-update-\(UUID().uuidString)")
+        let work = fm.temporaryDirectory.appendingPathComponent("recap-update-\(UUID().uuidString)")
         try fm.createDirectory(at: work, withIntermediateDirectories: true)
         defer { try? fm.removeItem(at: work) }
-        let dmgFile = work.appendingPathComponent("CallT.dmg")
+        let dmgFile = work.appendingPathComponent("Recap.dmg")
         try fm.moveItem(at: downloaded, to: dmgFile)
 
         // Monta il DMG e copia l'app in un'area di lavoro, poi smonta comunque.
-        appLog("📦 Installing CallT \(update.version)…")
+        appLog("📦 Installing Recap \(update.version)…")
         let mount = work.appendingPathComponent("mnt")
         let attach = try await ProcessRunner.run(
             "/usr/bin/hdiutil",
@@ -111,11 +111,11 @@ enum UpdateChecker {
         guard attach.status == 0 else {
             throw TranscriptionError(message: "hdiutil attach failed: \(attach.stderr)")
         }
-        let staged = work.appendingPathComponent("CallT.app")
+        let staged = work.appendingPathComponent("Recap.app")
         var stageError: Error?
-        let newApp = mount.appendingPathComponent("CallT.app")
+        let newApp = mount.appendingPathComponent("Recap.app")
         if !fm.fileExists(atPath: newApp.path) {
-            stageError = TranscriptionError(message: "CallT.app not found in the update image")
+            stageError = TranscriptionError(message: "Recap.app not found in the update image")
         } else {
             let copy = try await ProcessRunner.run("/usr/bin/ditto", [newApp.path, staged.path])
             if copy.status != 0 {
@@ -136,7 +136,7 @@ enum UpdateChecker {
         // ripristina il vecchio se qualcosa va storto.
         let current = Bundle.main.bundleURL
         let backup = current.deletingLastPathComponent()
-            .appendingPathComponent(".CallT-\(currentVersion).old.app")
+            .appendingPathComponent(".Recap-\(currentVersion).old.app")
         try? fm.removeItem(at: backup)
         try fm.moveItem(at: current, to: backup)
         let install = try await ProcessRunner.run("/usr/bin/ditto", [staged.path, current.path])
@@ -147,7 +147,7 @@ enum UpdateChecker {
         }
         try? fm.removeItem(at: backup)
 
-        appLog("✅ CallT \(update.version) installed — relaunching")
+        appLog("✅ Recap \(update.version) installed — relaunching")
         let relaunch = Process()
         relaunch.executableURL = URL(fileURLWithPath: "/bin/sh")
         relaunch.arguments = ["-c", "sleep 0.7; /usr/bin/open \"\(current.path)\""]

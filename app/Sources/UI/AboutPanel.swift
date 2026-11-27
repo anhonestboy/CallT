@@ -1,6 +1,6 @@
 import AppKit
 
-/// Pannello "Informazioni su CallT" standard con crediti.
+/// Pannello "Informazioni su Recap" standard con crediti.
 @MainActor
 enum AboutPanel {
     static func show() {
@@ -17,7 +17,7 @@ enum AboutPanel {
             credits.append(NSAttributedString(string: text + "\n", attributes: attrs))
         }
         line(String(localized: "Created by Maurizio Palumbo — werootbox"), bold: true)
-        line("github.com/anhonestboy/CallT", link: "https://github.com/anhonestboy/CallT")
+        line("github.com/anhonestboy/Recap", link: "https://github.com/anhonestboy/Recap")
         line("")
         line(String(localized: "Recording: ScreenCaptureKit · Transcription: Apple Speech, whisper.cpp"))
         line(String(localized: "Speakers: FluidAudio · Notes: Apple Intelligence, Claude, OpenRouter, DeepSeek, Ollama"))

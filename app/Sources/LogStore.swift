@@ -1,7 +1,7 @@
 import Foundation
 import os.log
 
-/// Log in memoria (per la UI) + su file in Application Support/CallT/callt.log.
+/// Log in memoria (per la UI) + su file in Application Support/Recap/recap.log.
 @MainActor
 final class LogStore: ObservableObject {
     struct Line: Identifiable, Equatable {
@@ -13,8 +13,8 @@ final class LogStore: ObservableObject {
 
     @Published private(set) var lines: [Line] = []
     private var nextID = 0
-    private let fileURL = AppSettings.appSupportDir.appendingPathComponent("callt.log")
-    private let osLog = Logger(subsystem: "com.werootbox.callt", category: "app")
+    private let fileURL = AppSettings.appSupportDir.appendingPathComponent("recap.log")
+    private let osLog = Logger(subsystem: "com.werootbox.recap", category: "app")
     private static let maxLines = 500
 
     var logFileURL: URL { fileURL }

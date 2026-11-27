@@ -10,7 +10,7 @@ enum SpeakerLabeler {
     }
 
     static var helperURL: URL? {
-        Bundle.main.resourceURL?.appendingPathComponent("callt-diarizer")
+        Bundle.main.resourceURL?.appendingPathComponent("recap-diarizer")
     }
 
     static var available: Bool {

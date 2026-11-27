@@ -67,7 +67,7 @@ enum AudioExtractor {
         nonisolated(unsafe) let out = output
         nonisolated(unsafe) let inp = input
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            let queue = DispatchQueue(label: "com.werootbox.callt.wav")
+            let queue = DispatchQueue(label: "com.werootbox.recap.wav")
             let state = LaneState()
             inp.requestMediaDataWhenReady(on: queue) {
                 while inp.isReadyForMoreMediaData {

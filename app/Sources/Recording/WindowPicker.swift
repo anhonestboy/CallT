@@ -27,7 +27,7 @@ extension WindowPicker: SCContentSharingPickerObserver {
         nonisolated(unsafe) let chosen = filter
         Task { @MainActor in
             SCContentSharingPicker.shared.isActive = false
-            await CallRecorder.shared.start(mode: .videoAudio, filter: chosen)
+            await LiveSession.shared.start(mode: .video, picked: chosen)
         }
     }
 

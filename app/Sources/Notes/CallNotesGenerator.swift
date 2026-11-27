@@ -132,6 +132,8 @@ enum CallNotesGenerator {
             return AppleNotesEngine.ifAvailable().map { ($0, "Apple") }
         case "claude":
             return ClaudeNotesEngine.fromSettings().map { ($0, "Claude \($0.model)") }
+        case "claude-cli":
+            return ClaudeCLINotesEngine.fromSettings().map { ($0, String(localized: "Claude (local account)") + " \($0.model)") }
         default:
             guard let provider = OpenAICompatEngine.provider(id) else { return nil }
             return OpenAICompatEngine.fromSettings(providerID: id)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Creates a local self-signed code-signing certificate ("CallT Local Signing")
+# Creates a local self-signed code-signing certificate ("Recap Local Signing")
 # and imports it into the login keychain. Signing the app with a stable
 # identity makes macOS permissions (Screen Recording, Microphone) survive
 # app updates — with ad-hoc signing they reset on every rebuild.
@@ -8,7 +8,7 @@
 # macOS may show 1-2 dialogs: approve and choose "Always Allow".
 set -euo pipefail
 
-NAME="CallT Local Signing"
+NAME="Recap Local Signing"
 DIR=$(mktemp -d)
 trap 'rm -rf "$DIR"' EXIT
 

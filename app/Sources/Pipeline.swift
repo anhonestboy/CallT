@@ -37,7 +37,7 @@ enum Pipeline {
         appLog("▶️ Processing: \(videoURL.lastPathComponent)")
 
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("callt-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("recap-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 

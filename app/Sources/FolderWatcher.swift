@@ -14,7 +14,7 @@ final class FolderWatcher: @unchecked Sendable {
     private let onStableFile: @Sendable (URL) -> Void
     private var source: DispatchSourceFileSystemObject?
     private var descriptor: CInt = -1
-    private let queue = DispatchQueue(label: "com.werootbox.callt.watcher")
+    private let queue = DispatchQueue(label: "com.werootbox.recap.watcher")
     /// File in attesa di stabilizzazione (accesso solo su `queue`).
     private var pending: Set<String> = []
     /// Invalida i check programmati delle sessioni precedenti (accesso su `queue`).

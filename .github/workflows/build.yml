@@ -16,5 +16,5 @@ jobs:
       - name: Upload app bundle
         uses: actions/upload-artifact@v4
         with:
-          name: CallT.app
-          path: app/build.noindex/CallT.app
+          name: Recap.app
+          path: app/build.noindex/Recap.app

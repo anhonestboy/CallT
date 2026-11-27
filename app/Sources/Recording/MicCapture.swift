@@ -12,7 +12,7 @@ import AVFoundation
 final class MicCapture: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, @unchecked Sendable {
     private let session = AVCaptureSession()
     private let output = AVCaptureAudioDataOutput()
-    private let queue = DispatchQueue(label: "com.werootbox.callt.recording.mic")
+    private let queue = DispatchQueue(label: "com.werootbox.recap.recording.mic")
     private var onBuffer: ((CMSampleBuffer) -> Void)?
     private var observers: [NSObjectProtocol] = []
     private(set) var isRunning = false
@@ -69,7 +69,10 @@ final class MicCapture: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, 
         session.beginConfiguration()
         for input in session.inputs { session.removeInput(input) }
 
-        guard let device = AVCaptureDevice.default(for: .audio),
+        // Microfono scelto nelle impostazioni, altrimenti quello predefinito.
+        let chosenID = AppSettings.defaults.string(forKey: "micDeviceID") ?? ""
+        let chosen = chosenID.isEmpty ? nil : AVCaptureDevice(uniqueID: chosenID)
+        guard let device = chosen ?? AVCaptureDevice.default(for: .audio),
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else {
             session.commitConfiguration()

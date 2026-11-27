@@ -1,12 +1,12 @@
 #!/bin/bash
-# Build manuale di CallT.app (swiftc) — non richiede xcodebuild.
+# Build manuale di Recap.app (swiftc) — non richiede xcodebuild.
 # Uso: scripts/build.sh [--universal]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_NAME=CallT
-BUNDLE_ID=com.werootbox.callt
-VERSION=1.3.4
+APP_NAME=Recap
+BUNDLE_ID=com.werootbox.recap
+VERSION=1.4.0
 BUILD_DIR=build.noindex   # .noindex: Spotlight/Launchpad ignorano le build
 APP="$BUILD_DIR/$APP_NAME.app"
 SDK=$(xcrun --show-sdk-path --sdk macosx)
@@ -33,12 +33,12 @@ mkdir -p "$APP/Contents/Resources/en.lproj"   # base: le chiavi sono in inglese
 echo "→ Build diarizer…"
 if [ "$UNIVERSAL" = "--universal" ]; then
   (cd tools/diarizer && swift build -c release --arch arm64 --arch x86_64 > /dev/null)
-  DIAR_BIN=tools/diarizer/.build/apple/Products/Release/callt-diarizer
+  DIAR_BIN=tools/diarizer/.build/apple/Products/Release/recap-diarizer
 else
   (cd tools/diarizer && swift build -c release > /dev/null)
-  DIAR_BIN=tools/diarizer/.build/release/callt-diarizer
+  DIAR_BIN=tools/diarizer/.build/release/recap-diarizer
 fi
-cp "$DIAR_BIN" "$APP/Contents/Resources/callt-diarizer"
+cp "$DIAR_BIN" "$APP/Contents/Resources/recap-diarizer"
 
 # ── Sorgenti ─────────────────────────────────────────
 find Sources -name '*.swift' | sort > "$BUILD_DIR/sources.txt"
@@ -88,7 +88,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 	<key>CFBundleVersion</key><string>1</string>
 	<key>LSMinimumSystemVersion</key><string>26.0</string>
 	<key>LSUIElement</key><true/>
-	<key>NSMicrophoneUsageDescription</key><string>CallT uses the microphone to record your voice during calls.</string>
+	<key>NSMicrophoneUsageDescription</key><string>Recap uses the microphone to record your voice during calls.</string>
 	<key>NSHumanReadableCopyright</key><string>© 2026 werootbox</string>
 	<key>NSPrincipalClass</key><string>NSApplication</string>
 </dict>
@@ -119,10 +119,12 @@ test -f "$APP/Contents/Resources/Metadata.appintents/extract.actionsdata" \
 # Preferisce il certificato locale stabile (i permessi TCC sopravvivono
 # agli aggiornamenti); altrimenti firma ad-hoc. Vedi make-signing-cert.sh.
 IDENTITY=${CODESIGN_IDENTITY:-}
-if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning | grep -q "CallT Local Signing"; then
-  IDENTITY="CallT Local Signing"
-fi
-codesign --force --sign "${IDENTITY:--}" "$APP/Contents/Resources/callt-diarizer"
+for CERT in "Recap Local Signing" "CallT Local Signing"; do   # il secondo: certificato creato col vecchio nome
+  if [ -z "$IDENTITY" ] && security find-identity -v -p codesigning | grep -q "$CERT"; then
+    IDENTITY="$CERT"
+  fi
+done
+codesign --force --sign "${IDENTITY:--}" "$APP/Contents/Resources/recap-diarizer"
 codesign --force --deep --sign "${IDENTITY:--}" "$APP"
 codesign --verify --strict "$APP"
 echo "→ Firma: ${IDENTITY:-ad-hoc}"

@@ -24,25 +24,23 @@ final class AppState: ObservableObject {
     // MARK: - Avvio
 
     func onLaunch() {
+        LegacyMigration.run()
         AppSettings.registerDefaults()
         Notifier.setup()
         HotKeyManager.shared.register()
-        appLog("CallT started")
+        appLog("Recap started")
         refreshRecents()
         UpdateChecker.autoCheck()
         // La coda di elaborazione non deve mai girare mentre si registra:
         // trascrizione + diarizzazione + ri-encoding saturano Neural Engine,
         // GPU e disco e degradano la call in corso.
-        recorderCancellable = CallRecorder.shared.$isRecording
+        recorderCancellable = LiveSession.shared.$phase
+            .map { $0 == .live || $0 == .starting }
             .removeDuplicates()
             .sink { recording in
                 Task { @MainActor in
-                    if recording {
-                        if !AppState.shared.pendingQueue.isEmpty || AppState.shared.isProcessing {
-                            appLog("⏸️ Elaborazione in pausa: registrazione in corso")
-                        }
-                    } else {
-                        AppState.shared.processNextIfIdle()
+                    if recording, !AppState.shared.pendingQueue.isEmpty || AppState.shared.isProcessing {
+                        appLog("⏸️ Elaborazione in pausa: registrazione in corso")
                     }
                 }
             }
@@ -167,7 +165,7 @@ final class AppState: ObservableObject {
 
     private func processNextIfIdle() {
         guard !isProcessing, !pendingQueue.isEmpty else { return }
-        guard !CallRecorder.shared.isRecording else { return }
+        guard LiveSession.shared.phase == .idle || LiveSession.shared.isDoneOrFailed else { return }
         let url = pendingQueue.removeFirst()
         queuedCount = pendingQueue.count
         isProcessing = true
@@ -190,6 +188,11 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// Chiamato a fine sessione live: riparte la coda messa in pausa.
+    func resumeQueueAfterRecording() {
+        processNextIfIdle()
+    }
+
     private func finishCurrentAndContinue() {
         isProcessing = false
         refreshRecents()
@@ -198,7 +201,21 @@ final class AppState: ObservableObject {
 
     func refreshRecents() {
         Task { @MainActor in
+            guard !ScreenshotRenderer.isRendering else { return }
             recents = await ProcessedRegistry.shared.recentDone(limit: 6)
+        }
+    }
+
+    /// Dati dimostrativi per gli screenshot della documentazione: mai i file veri.
+    func useDemoRecents() {
+        let now = Date()
+        recents = [
+            ("Call 2026-11-27 10.30", 3600.0), ("Call 2026-11-26 15.00", 90_000.0),
+            ("Weekly sync.m4a", 260_000.0),
+        ].map { name, age in
+            ProcessedRegistry.RecentItem(
+                sourcePath: "/demo/\(name)", transcriptPath: "/demo/\(name)_transcript.txt",
+                processedAt: now.addingTimeInterval(-age))
         }
     }
 

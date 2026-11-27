@@ -1,14 +1,14 @@
 import Foundation
 import FluidAudio
 
-// callt-diarizer <audio.wav>
+// recap-diarizer <audio.wav>
 // Stampa su stdout JSON: {"segments":[{"speaker":"1","start":0.0,"end":3.2},…]}
 // I modelli CoreML (~100MB) vengono scaricati da HuggingFace alla prima
 // esecuzione e restano in ~/Library/Application Support/FluidAudio/Models.
 
 let arguments = CommandLine.arguments
 guard arguments.count > 1 else {
-    FileHandle.standardError.write(Data("usage: callt-diarizer <audio.wav>\n".utf8))
+    FileHandle.standardError.write(Data("usage: recap-diarizer <audio.wav>\n".utf8))
     exit(2)
 }
 let audioPath = arguments[1]

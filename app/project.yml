@@ -1,6 +1,6 @@
 # Progetto Xcode generabile con: xcodegen generate
 # (utile per lavorare in Xcode; la build distribuibile usa scripts/build.sh)
-name: CallT
+name: Recap
 options:
   bundleIdPrefix: com.werootbox
   deploymentTarget:
@@ -13,7 +13,7 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "26.0"
 
 targets:
-  CallT:
+  Recap:
     type: application
     platform: macOS
     deploymentTarget: "26.0"
@@ -22,8 +22,8 @@ targets:
       - path: Resources/AppIcon.icns
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.werootbox.callt
-        PRODUCT_NAME: CallT
+        PRODUCT_BUNDLE_IDENTIFIER: com.werootbox.recap
+        PRODUCT_NAME: Recap
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: ""
@@ -33,7 +33,7 @@ targets:
     info:
       path: Sources/Info.plist
       properties:
-        CFBundleDisplayName: CallT
+        CFBundleDisplayName: Recap
         CFBundleDevelopmentRegion: it
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
