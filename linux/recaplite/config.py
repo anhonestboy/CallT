@@ -37,6 +37,9 @@ class Config:
     system_command: list[str] = field(default_factory=lambda: [
         "pw-record", "-P", "{ stream.capture.sink = true }",
         "--rate", "16000", "--channels", "1", "--format", "s16", "--raw", "-"])
+    # Vista all'avvio della call: "mini" (pillola sotto la barra; il pannello grande si apre da lì)
+    # oppure "panel" (subito il pannello grande).
+    start_view: str = "mini"
     # Pannello: browser in modalità app.
     panel_command: list[str] = field(default_factory=lambda: [
         "chromium-browser", "--app={url}", "--user-data-dir={profile}",

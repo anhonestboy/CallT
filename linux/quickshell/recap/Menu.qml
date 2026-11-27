@@ -209,6 +209,7 @@ PanelWindow {
                     RowLayout {
                         spacing: 8
                         Btn { label: "Pannello"; icon: "dock_to_left"; onClicked: { win.run(["panel", "--show"]); win.open = false } }
+                        Btn { label: "Pillola"; icon: "picture_in_picture_alt"; onClicked: { win.run(["panel", "--mini"]); win.open = false } }
                         Btn { label: "Segna"; icon: "star"; onClicked: win.run(["mark"], "select") }
                     }
                     Btn { label: "Ferma e scrivi le note"; icon: "stop_circle"; prominent: true; tint: Theme.red

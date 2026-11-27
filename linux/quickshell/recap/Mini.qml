@@ -12,7 +12,11 @@ PanelWindow {
     property bool shown: false
     property real t: 0
     Behavior on t { NumberAnimation { duration: mini.shown ? 240 : 150; easing.type: Easing.OutCubic } }
-    onShownChanged: { t = shown ? 1 : 0; confirmStop = false; if (shown) poll() }
+    onShownChanged: {
+        t = shown ? 1 : 0
+        confirmStop = false
+        if (shown) { st = ({ phase: "" }); poll() }  // si mostra quando arriva lo stato vero
+    }
     visible: shown || t > 0.01
 
     color: "transparent"
@@ -26,7 +30,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     readonly property string bin: Quickshell.env("HOME") + "/.local/bin/recap-lite"
-    property var st: ({ phase: "idle" })
+    property var st: ({ phase: "" })
     property real now: Date.now() / 1000
     readonly property bool live: st.phase === "live" || st.phase === "starting"
 
@@ -97,7 +101,7 @@ PanelWindow {
         radius: 26
         color: Theme.surface
         border.color: Theme.line
-        opacity: mini.t
+        opacity: mini.st.phase ? mini.t : 0
         scale: 0.96 + 0.04 * mini.t
 
         RowLayout {
@@ -145,7 +149,8 @@ PanelWindow {
             // note in preparazione / pronte
             Text {
                 visible: !mini.live
-                text: mini.st.phase === "finishing" ? (mini.st.phaseMessage || "Scrivo le note…") : "Note pronte"
+                text: mini.st.phase === "finishing" ? (mini.st.phaseMessage || "Scrivo le note…")
+                    : mini.st.phase === "done" ? "Note pronte" : "Recap…"
                 color: mini.st.phase === "done" ? Theme.green : Theme.fg
                 font.pixelSize: 14; font.weight: Font.Medium
                 Layout.leftMargin: 10; Layout.rightMargin: 6

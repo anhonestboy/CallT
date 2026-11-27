@@ -39,6 +39,8 @@ Come la barra dei menu del Mac: l'icona dell'onda è sempre visibile e durante l
 | Super+Alt+B | riduce il pannello a pillola sotto la barra |
 | Super+Alt+M | segna il momento ⭐ |
 
+All'avvio della call compare la **pillola** sotto la barra, in alto a destra: timer, ⭐, **Apri** e stop. Il **pannello grande** (note, trascrizione, domande) si apre da lì con Apri o con un clic sul timer, oppure con il clic destro sull'icona, "Pannello" nel menu o Super+Alt+N. Per avere subito il pannello grande: `"start_view": "panel"` nella configurazione.
+
 Il pannello si apre in alto a destra, flottante, fissato su tutti i workspace e leggermente trasparente. La regola di Hyprland riconosce la finestra dalla classe; se non prende, `recap-lite` la sistema da sé con `hyprctl`. Nell'intestazione, come sul Mac:
 - **Riduci** lo chiude e mostra una **pillola** sotto la barra con timer, ⭐, **Apri** e stop. Clic sul timer o su Apri riapre il pannello; lo stop chiede conferma ("Ferma?", secondo clic entro 3 secondi). A call conclusa la pillola offre le note e poi si chiude. Se la pillola non può comparire (Quickshell non risponde) il pannello resta aperto e dice perché.
 - **Nascondi** lo chiude e basta: la call continua, lo riapri da "Pannello" nel menu, con il clic destro sull'icona o con Super+Alt+N.
@@ -48,7 +50,7 @@ Se usi un'altra barra, la voce si aggiunge a mano (`waybar_patch.py` mostra il m
 ## Uso
 
 ```sh
-recap-lite start [--title "Kickoff Orione"]   # avvia e apre il pannello
+recap-lite start [--title "Kickoff Orione"]   # avvia e mostra la pillola
 recap-lite mark ["decisione sul CRM"]         # ⭐
 recap-lite note "chiedere i costi a Marco"
 recap-lite ask "cosa hanno detto sul budget?"
@@ -68,6 +70,7 @@ Le call finiscono in `~/Recap/<Call data ora>/`.
 | `output_dir` | `~/Recap` | dove finiscono le call |
 | `engine` | `claude-cli` | `claude-cli`, `api` (ANTHROPIC_API_KEY) oppure `off` |
 | `live_model` / `final_model` | `sonnet` / `opus` | modelli Claude per note live e finali |
+| `start_view` | `mini` | vista all'avvio: `mini` (pillola) o `panel` (pannello grande) |
 | `notes_interval` | `45` | secondi tra un aggiornamento delle note e l'altro |
 | `keep_audio` | `true` | tiene l'audio della call |
 | `mic_command`, `system_command` | `pw-record …` | comandi di cattura (PCM 16 kHz mono su stdout) |

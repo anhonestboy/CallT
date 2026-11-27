@@ -32,7 +32,7 @@ from pathlib import Path
 
 from .config import CONFIG_FILE, PORT, STATE_FILE, Config
 
-from .panel import URL, close_panel, minimize, open_panel, qs_call
+from .panel import URL, close_panel, minimize, open_default, open_panel, qs_call
 from . import panel as panel_mod
 LOG_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "recap-lite"
 
@@ -67,7 +67,7 @@ def cmd_start(args, cfg: Config) -> int:
     state = _state()
     if state and state["phase"] in ("starting", "live", "finishing"):
         if not args.no_panel:
-            open_panel(cfg)
+            open_default(cfg)
         print(f"Sessione già attiva: {state['name']}")
         return 0
     if state:  # sessione precedente conclusa: chiude il vecchio demone
@@ -92,7 +92,7 @@ def cmd_start(args, cfg: Config) -> int:
         return 1
     print(f"🔴 {state['name']} — note: {state['engine']}, trascrizione: whisper {state['model']}")
     if not args.no_panel:
-        open_panel(cfg)
+        open_default(cfg)
     return 0
 
 

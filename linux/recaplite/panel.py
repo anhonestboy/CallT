@@ -118,6 +118,13 @@ def open_panel(cfg: Config) -> None:
             return
 
 
+def open_default(cfg: Config) -> None:
+    """Vista all'avvio: la pillola (default) o il pannello grande. Senza Quickshell, il pannello."""
+    if cfg.start_view != "panel" and qs_call("mini", "show")[0]:
+        return
+    open_panel(cfg)
+
+
 def close_panel() -> bool:
     closed = False
     for client in windows(alive()):
